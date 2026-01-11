@@ -9,7 +9,7 @@ const MODULES = [
     name: "Dashboard",
     description: "Overview page with key metrics and activity",
     category: "core",
-    baseHours: 8,
+    baseHours: 2,
     baseTokens: 50000,
     riskWeight: 1.0,
     dependencies: [],
@@ -20,7 +20,7 @@ const MODULES = [
     name: "Analytics",
     description: "Charts, graphs, and data visualization",
     category: "core",
-    baseHours: 12,
+    baseHours: 4,
     baseTokens: 80000,
     riskWeight: 1.2,
     dependencies: ["dashboard"],
@@ -31,7 +31,7 @@ const MODULES = [
     name: "Settings",
     description: "User preferences and account management",
     category: "core",
-    baseHours: 6,
+    baseHours: 2,
     baseTokens: 30000,
     riskWeight: 1.0,
     dependencies: [],
@@ -43,7 +43,7 @@ const MODULES = [
     name: "Database",
     description: "Data models and persistence layer",
     category: "data",
-    baseHours: 10,
+    baseHours: 4,
     baseTokens: 60000,
     riskWeight: 1.1,
     dependencies: [],
@@ -54,7 +54,7 @@ const MODULES = [
     name: "API Layer",
     description: "REST or GraphQL endpoints",
     category: "data",
-    baseHours: 14,
+    baseHours: 6,
     baseTokens: 70000,
     riskWeight: 1.2,
     dependencies: ["database"],
@@ -65,7 +65,7 @@ const MODULES = [
     name: "File Storage",
     description: "Upload, store, and serve files",
     category: "data",
-    baseHours: 8,
+    baseHours: 2,
     baseTokens: 40000,
     riskWeight: 1.1,
     dependencies: [],
@@ -77,7 +77,7 @@ const MODULES = [
     name: "Email",
     description: "Transactional and notification emails",
     category: "communication",
-    baseHours: 6,
+    baseHours: 2,
     baseTokens: 35000,
     riskWeight: 1.0,
     dependencies: [],
@@ -88,7 +88,7 @@ const MODULES = [
     name: "Notifications",
     description: "In-app and push notifications",
     category: "communication",
-    baseHours: 8,
+    baseHours: 3,
     baseTokens: 45000,
     riskWeight: 1.1,
     dependencies: [],
@@ -99,7 +99,7 @@ const MODULES = [
     name: "Real-time Chat",
     description: "Live messaging between users",
     category: "communication",
-    baseHours: 16,
+    baseHours: 6,
     baseTokens: 90000,
     riskWeight: 1.4,
     dependencies: ["database"],
@@ -111,7 +111,7 @@ const MODULES = [
     name: "Checkout",
     description: "One-time payment processing",
     category: "payments",
-    baseHours: 10,
+    baseHours: 4,
     baseTokens: 55000,
     riskWeight: 1.3,
     dependencies: [],
@@ -122,7 +122,7 @@ const MODULES = [
     name: "Subscriptions",
     description: "Recurring billing management",
     category: "payments",
-    baseHours: 14,
+    baseHours: 6,
     baseTokens: 75000,
     riskWeight: 1.4,
     dependencies: ["checkout"],
@@ -133,7 +133,7 @@ const MODULES = [
     name: "Invoices",
     description: "Invoice generation and history",
     category: "payments",
-    baseHours: 8,
+    baseHours: 2,
     baseTokens: 40000,
     riskWeight: 1.1,
     dependencies: [],
@@ -145,7 +145,7 @@ const MODULES = [
     name: "Text Generation",
     description: "AI-powered content creation",
     category: "ai",
-    baseHours: 12,
+    baseHours: 4,
     baseTokens: 100000,
     riskWeight: 1.3,
     dependencies: ["api"],
@@ -156,7 +156,7 @@ const MODULES = [
     name: "Image Generation",
     description: "AI image creation and editing",
     category: "ai",
-    baseHours: 16,
+    baseHours: 6,
     baseTokens: 120000,
     riskWeight: 1.5,
     dependencies: ["api", "file-storage"],
@@ -167,7 +167,7 @@ const MODULES = [
     name: "Embeddings & Search",
     description: "Semantic search and recommendations",
     category: "ai",
-    baseHours: 14,
+    baseHours: 6,
     baseTokens: 80000,
     riskWeight: 1.4,
     dependencies: ["database", "api"],
@@ -244,6 +244,59 @@ export const seedAll = mutation({
       modules: modulesSeeded ? "seeded" : "already_exists",
       moduleCount: modulesSeeded ? MODULES.length : existingModules.length,
       rateCard: rateCardSeeded ? "seeded" : "already_exists",
+    };
+  },
+});
+
+// Migration: Update baseHours for AI-accelerated development
+// Run once via: npx convex run seed:migrateBaseHours
+export const migrateBaseHours = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // New AI-accelerated base hours (61% reduction overall)
+    const updates: Record<string, number> = {
+      // Tier 1: Standard patterns (2-3 hours)
+      "dashboard": 2,
+      "settings": 2,
+      "file-storage": 2,
+      "email": 2,
+      "notifications": 3,
+      "invoices": 2,
+      // Tier 2: Moderate complexity (4 hours)
+      "analytics": 4,
+      "database": 4,
+      "checkout": 4,
+      "text-gen": 4,
+      // Tier 3: High complexity (6 hours)
+      "api": 6,
+      "chat": 6,
+      "subscriptions": 6,
+      "image-gen": 6,
+      "embeddings": 6,
+    };
+
+    const modules = await ctx.db.query("moduleCatalog").collect();
+    let updated = 0;
+    const changes: Array<{ moduleId: string; oldHours: number; newHours: number }> = [];
+
+    for (const mod of modules) {
+      const newHours = updates[mod.moduleId];
+      if (newHours !== undefined && mod.baseHours !== newHours) {
+        changes.push({
+          moduleId: mod.moduleId,
+          oldHours: mod.baseHours,
+          newHours: newHours,
+        });
+        await ctx.db.patch(mod._id, { baseHours: newHours });
+        updated++;
+      }
+    }
+
+    return {
+      status: updated > 0 ? "migrated" : "no_changes_needed",
+      updated,
+      total: modules.length,
+      changes,
     };
   },
 });
