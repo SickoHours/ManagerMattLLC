@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { AnimatedPrice } from "@/components/ui/animated-number";
 import { cn } from "@/lib/utils";
 import {
   EstimateConfig,
   PriceRange,
-  formatPrice,
   PLATFORM_OPTIONS,
   AUTH_OPTIONS,
   QUALITY_OPTIONS,
@@ -44,10 +44,11 @@ export function SummaryPill({
         />
       )}
 
-      {/* Pill */}
+      {/* Pill - PRD 5.5.3: Safe area inset for iOS home indicator */}
       <div
         className={cn(
-          "fixed bottom-4 left-4 right-4 z-40 lg:hidden",
+          "fixed left-4 right-4 z-40 lg:hidden",
+          "bottom-4 pb-[env(safe-area-inset-bottom)]",
           "bg-surface rounded-2xl shadow-xl",
           "transition-all duration-300 ease-out",
           expanded ? "max-h-[60vh]" : "max-h-16"
@@ -58,12 +59,15 @@ export function SummaryPill({
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-center justify-between p-4 h-16"
         >
-          <div className="flex items-center gap-3">
+          {/* PRD 5.5.3: Layout shift guard - min-width and tabular-nums for stable layout */}
+          <div className="flex items-center gap-3 min-w-[160px]">
             {isCalculating ? (
-              <div className="h-6 w-32 skeleton rounded" />
+              <div className="h-6 w-full skeleton rounded" />
             ) : hasSelections ? (
-              <span className="text-h4 text-primary price-tween">
-                {formatPrice(priceRange.min)} – {formatPrice(priceRange.max)}
+              <span className="flex items-center gap-1 text-h4 text-primary tabular-nums">
+                <AnimatedPrice value={priceRange.min} />
+                <span className="text-secondary-custom">–</span>
+                <AnimatedPrice value={priceRange.max} />
               </span>
             ) : (
               <span className="text-body text-muted-foreground">
@@ -130,18 +134,20 @@ export function SummaryPill({
 
             <div className="h-px bg-border my-4" />
 
-            {/* Price */}
-            <div>
+            {/* Price - PRD 5.5.3: Layout shift guard */}
+            <div className="min-w-[180px]">
               <p className="text-body-sm text-secondary-custom">
                 Estimated Range
               </p>
               {isCalculating ? (
-                <div className="mt-2 h-8 w-40 skeleton rounded" />
+                <div className="mt-2 h-8 w-full skeleton rounded" />
               ) : hasSelections ? (
                 <>
-                  <p className="mt-1 text-h3 text-primary">
-                    {formatPrice(priceRange.min)} – {formatPrice(priceRange.max)}
-                  </p>
+                  <div className="mt-1 flex items-baseline gap-2 text-h3 text-primary tabular-nums">
+                    <AnimatedPrice value={priceRange.min} />
+                    <span className="text-body text-secondary-custom">–</span>
+                    <AnimatedPrice value={priceRange.max} />
+                  </div>
                   <p className="mt-1 text-label text-muted-custom">
                     P10 – P90 confidence range
                   </p>

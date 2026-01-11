@@ -30,6 +30,7 @@ export function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
               disabled={!isClickable}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-150",
+                "min-h-[44px] min-w-[44px]", // PRD 5.5.3: 44px minimum tap target
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 isCurrent && "bg-primary text-primary-foreground",
                 isComplete && !isCurrent && "bg-subtle text-secondary-custom",

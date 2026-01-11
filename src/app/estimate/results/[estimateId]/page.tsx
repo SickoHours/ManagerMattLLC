@@ -7,6 +7,7 @@ import { Id } from "../../../../../convex/_generated/dataModel";
 import { Header } from "@/components/layout/header";
 import { ResultsSummary } from "@/components/estimate/results-summary";
 import { CostBreakdown } from "@/components/estimate/cost-breakdown";
+import { PricingFormula } from "@/components/estimate/pricing-formula";
 import { AssumptionsList } from "@/components/estimate/assumptions-list";
 import { QuoteForm } from "@/components/estimate/quote-form";
 import { RemediesSection } from "@/components/estimate/remedies-section";
@@ -135,6 +136,16 @@ export default function ResultsPage() {
           {/* Left column - Results and breakdown */}
           <div className="lg:col-span-2 space-y-6">
             <ResultsSummary estimate={estimate} />
+            {/* PRD 8.5: Pricing formula display */}
+            <PricingFormula
+              tokensIn={estimate.tokensIn ?? 0}
+              tokensOut={estimate.tokensOut ?? 0}
+              materialsCost={estimate.materialsCost ?? 0}
+              laborCost={estimate.laborCost ?? 0}
+              riskBuffer={estimate.riskBuffer ?? 0}
+              hoursMin={estimate.hoursMin}
+              hoursMax={estimate.hoursMax}
+            />
             <CostBreakdown estimate={estimate} />
             <AssumptionsList assumptions={estimate.assumptions} />
             <RemediesSection />

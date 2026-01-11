@@ -18,17 +18,16 @@ export function Hero() {
 
           {/* Tagline */}
           <FadeIn delay={100} direction="up">
-            <p className="mt-6 text-h2 text-secondary-custom font-semibold">
+            <p className="mt-6 text-h2 text-secondary-custom font-bold tracking-tight">
               Faster. Clearer. Cheaper.
             </p>
           </FadeIn>
 
-          {/* Description */}
+          {/* Description - PRD 5.5.3: ≤15 words for luxury copy */}
           <FadeIn delay={200} direction="up">
             <p className="mt-8 text-body text-secondary-custom max-w-xl mx-auto">
-              AI-accelerated development with radically transparent estimates and
-              delivery. See every assumption, track every change, own your
-              outcomes.
+              AI-accelerated development with transparent estimates.
+              See every assumption. Own your outcomes.
             </p>
           </FadeIn>
 

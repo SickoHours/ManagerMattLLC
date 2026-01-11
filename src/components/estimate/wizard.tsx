@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
@@ -10,6 +10,7 @@ import { SelectionCard, ModuleCard } from "./selection-card";
 import { OrderSummary } from "./order-summary";
 import { SummaryPill } from "./summary-pill";
 import { AskHumanButton } from "./ask-human-button";
+import { NetworkErrorBanner, SubmissionErrorBanner } from "./network-error-banner";
 import {
   EstimateConfig,
   PriceRange,
@@ -42,6 +43,10 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTemplates, setShowTemplates] = useState(!initialConfig);
+  // PRD 12.2: Degraded mode state tracking
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [previewErrorCount, setPreviewErrorCount] = useState(0);
+  const [lastPreviewConfig, setLastPreviewConfig] = useState<string>("");
 
   // Apply a template
   const applyTemplate = (templateKey: keyof typeof TEMPLATES) => {
@@ -66,6 +71,29 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
   // Use Convex mutation to create estimate
   const createEstimate = useMutation(api.estimates.create);
 
+  // PRD 12.2: Track preview loading time for potential network issues
+  const configString = JSON.stringify(config);
+  useEffect(() => {
+    if (configString !== lastPreviewConfig) {
+      setLastPreviewConfig(configString);
+      // Reset error count when config changes
+      const timer = setTimeout(() => {
+        // If still loading after 10 seconds, increment error count
+        if (previewResult === undefined) {
+          setPreviewErrorCount(prev => prev + 1);
+        }
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [configString, lastPreviewConfig, previewResult]);
+
+  // Reset preview error count when preview succeeds
+  useEffect(() => {
+    if (previewResult !== undefined) {
+      setPreviewErrorCount(0);
+    }
+  }, [previewResult]);
+
   // Convert preview result to PriceRange format
   const priceRange: PriceRange = previewResult
     ? {
@@ -76,6 +104,7 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
     : { min: 0, max: 0, confidence: 0 };
 
   const isCalculating = previewResult === undefined;
+  const hasPreviewError = previewErrorCount > 0;
 
   const updateConfig = useCallback(
     <K extends keyof EstimateConfig>(key: K, value: EstimateConfig[K]) => {
@@ -126,6 +155,7 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
     }
 
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const result = await createEstimate({
         platform: config.platform,
@@ -138,9 +168,22 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
       router.push(`/estimate/results/${result.estimateId}`);
     } catch (error) {
       console.error("Failed to create estimate:", error);
+      // PRD 12.2: Show friendly error message
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again or contact us directly."
+      );
       setIsSubmitting(false);
     }
   };
+
+  // PRD 12.2: Retry function for preview errors
+  const handleRetryPreview = useCallback(() => {
+    setPreviewErrorCount(0);
+    // Force re-fetch by updating config slightly (triggers new query)
+    setLastPreviewConfig("");
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -154,6 +197,24 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
             onStepClick={(index) => index <= currentStep && setCurrentStep(index)}
           />
         </div>
+
+        {/* PRD 12.2: Network error banner for preview issues */}
+        {hasPreviewError && (
+          <NetworkErrorBanner
+            error="Price preview is taking longer than expected. You can continue configuring while we retry."
+            onRetry={handleRetryPreview}
+            isRetrying={isCalculating}
+          />
+        )}
+
+        {/* PRD 12.2: Submission error banner */}
+        {submitError && (
+          <SubmissionErrorBanner
+            error={submitError}
+            onRetry={handleGetQuote}
+            isRetrying={isSubmitting}
+          />
+        )}
 
         {/* Template quick-start banner (shown when no preset) */}
         {showTemplates && currentStep === 0 && (
@@ -391,9 +452,14 @@ function StepPlatform({
               {option.description}
             </p>
             {option.id === "unknown" && (
-              <p className="mt-2 text-label text-muted-foreground">
-                This will show wider price ranges
-              </p>
+              <div className="mt-2 p-2 bg-warning/10 rounded-lg border border-warning/20">
+                <p className="text-label text-warning font-medium">
+                  Wider ranges, lower confidence
+                </p>
+                <p className="text-label text-muted-foreground mt-0.5">
+                  We&apos;ll estimate for multiple scenarios
+                </p>
+              </div>
             )}
           </SelectionCard>
         ))}
@@ -457,9 +523,14 @@ function StepAuth({
               {option.description}
             </p>
             {option.id === "unknown" && (
-              <p className="mt-2 text-label text-muted-foreground">
-                This will show wider price ranges
-              </p>
+              <div className="mt-2 p-2 bg-warning/10 rounded-lg border border-warning/20">
+                <p className="text-label text-warning font-medium">
+                  Wider ranges, lower confidence
+                </p>
+                <p className="text-label text-muted-foreground mt-0.5">
+                  We&apos;ll estimate for multiple auth levels
+                </p>
+              </div>
             )}
           </SelectionCard>
         ))}

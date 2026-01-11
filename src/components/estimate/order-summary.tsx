@@ -1,11 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { AnimatedPrice } from "@/components/ui/animated-number";
 import { cn } from "@/lib/utils";
 import {
   EstimateConfig,
   PriceRange,
-  formatPrice,
   PLATFORM_OPTIONS,
   AUTH_OPTIONS,
   QUALITY_OPTIONS,
@@ -78,14 +78,18 @@ export function OrderSummary({
 
         {isCalculating ? (
           <div className="mt-2 space-y-2">
-            <div className="h-10 w-48 skeleton rounded-lg" />
+            {/* PRD 5.5.3: Skeleton matches rendered content dimensions */}
+            <div className="h-10 min-w-[200px] skeleton rounded-lg" />
             <div className="h-4 w-32 skeleton rounded" />
           </div>
         ) : hasSelections ? (
           <>
-            <p className="mt-2 text-h2 text-primary price-tween">
-              {formatPrice(priceRange.min)} – {formatPrice(priceRange.max)}
-            </p>
+            {/* PRD 5.5.3: Layout shift guard with min-width and tabular-nums, animated prices */}
+            <div className="mt-2 flex items-baseline gap-2 min-w-[200px]">
+              <AnimatedPrice value={priceRange.min} className="text-h2 text-primary tabular-nums" />
+              <span className="text-body text-secondary-custom">–</span>
+              <AnimatedPrice value={priceRange.max} className="text-h2 text-primary tabular-nums" />
+            </div>
             <p className="mt-1 text-label text-muted-custom">
               P10 – P90 confidence range
             </p>
