@@ -1,0 +1,233 @@
+import { mutation } from "./_generated/server";
+
+// Module catalog data (migrated from src/lib/mock-data.ts)
+const MODULES = [
+  // Core
+  {
+    moduleId: "dashboard",
+    name: "Dashboard",
+    description: "Overview page with key metrics and activity",
+    category: "core",
+    baseHours: 8,
+    baseTokens: 50000,
+    riskWeight: 1.0,
+    dependencies: [],
+  },
+  {
+    moduleId: "analytics",
+    name: "Analytics",
+    description: "Charts, graphs, and data visualization",
+    category: "core",
+    baseHours: 12,
+    baseTokens: 80000,
+    riskWeight: 1.2,
+    dependencies: ["dashboard"],
+  },
+  {
+    moduleId: "settings",
+    name: "Settings",
+    description: "User preferences and account management",
+    category: "core",
+    baseHours: 6,
+    baseTokens: 30000,
+    riskWeight: 1.0,
+    dependencies: [],
+  },
+  // Data
+  {
+    moduleId: "database",
+    name: "Database",
+    description: "Data models and persistence layer",
+    category: "data",
+    baseHours: 10,
+    baseTokens: 60000,
+    riskWeight: 1.1,
+    dependencies: [],
+  },
+  {
+    moduleId: "api",
+    name: "API Layer",
+    description: "REST or GraphQL endpoints",
+    category: "data",
+    baseHours: 14,
+    baseTokens: 70000,
+    riskWeight: 1.2,
+    dependencies: ["database"],
+  },
+  {
+    moduleId: "file-storage",
+    name: "File Storage",
+    description: "Upload, store, and serve files",
+    category: "data",
+    baseHours: 8,
+    baseTokens: 40000,
+    riskWeight: 1.1,
+    dependencies: [],
+  },
+  // Communication
+  {
+    moduleId: "email",
+    name: "Email",
+    description: "Transactional and notification emails",
+    category: "communication",
+    baseHours: 6,
+    baseTokens: 35000,
+    riskWeight: 1.0,
+    dependencies: [],
+  },
+  {
+    moduleId: "notifications",
+    name: "Notifications",
+    description: "In-app and push notifications",
+    category: "communication",
+    baseHours: 8,
+    baseTokens: 45000,
+    riskWeight: 1.1,
+    dependencies: [],
+  },
+  {
+    moduleId: "chat",
+    name: "Real-time Chat",
+    description: "Live messaging between users",
+    category: "communication",
+    baseHours: 16,
+    baseTokens: 90000,
+    riskWeight: 1.4,
+    dependencies: ["database"],
+  },
+  // Payments
+  {
+    moduleId: "checkout",
+    name: "Checkout",
+    description: "One-time payment processing",
+    category: "payments",
+    baseHours: 10,
+    baseTokens: 55000,
+    riskWeight: 1.3,
+    dependencies: [],
+  },
+  {
+    moduleId: "subscriptions",
+    name: "Subscriptions",
+    description: "Recurring billing management",
+    category: "payments",
+    baseHours: 14,
+    baseTokens: 75000,
+    riskWeight: 1.4,
+    dependencies: ["checkout"],
+  },
+  {
+    moduleId: "invoices",
+    name: "Invoices",
+    description: "Invoice generation and history",
+    category: "payments",
+    baseHours: 8,
+    baseTokens: 40000,
+    riskWeight: 1.1,
+    dependencies: [],
+  },
+  // AI
+  {
+    moduleId: "text-gen",
+    name: "Text Generation",
+    description: "AI-powered content creation",
+    category: "ai",
+    baseHours: 12,
+    baseTokens: 100000,
+    riskWeight: 1.3,
+    dependencies: ["api"],
+  },
+  {
+    moduleId: "image-gen",
+    name: "Image Generation",
+    description: "AI image creation and editing",
+    category: "ai",
+    baseHours: 16,
+    baseTokens: 120000,
+    riskWeight: 1.5,
+    dependencies: ["api", "file-storage"],
+  },
+  {
+    moduleId: "embeddings",
+    name: "Embeddings & Search",
+    description: "Semantic search and recommendations",
+    category: "ai",
+    baseHours: 14,
+    baseTokens: 80000,
+    riskWeight: 1.4,
+    dependencies: ["database", "api"],
+  },
+];
+
+// Default rate card
+const DEFAULT_RATE_CARD = {
+  name: "Standard",
+  hourlyRate: 150,
+  tokenRateIn: 0.00001, // $0.01 per 1K tokens
+  tokenRateOut: 0.00003, // $0.03 per 1K tokens
+  markup: 1.0,
+  isActive: true,
+};
+
+export const seedModuleCatalog = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Check if already seeded
+    const existingModules = await ctx.db.query("moduleCatalog").collect();
+    if (existingModules.length > 0) {
+      return { status: "already_seeded", moduleCount: existingModules.length };
+    }
+
+    // Seed modules
+    for (const mod of MODULES) {
+      await ctx.db.insert("moduleCatalog", mod);
+    }
+
+    return { status: "seeded", moduleCount: MODULES.length };
+  },
+});
+
+export const seedRateCard = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Check if already seeded
+    const existingCards = await ctx.db.query("rateCards").collect();
+    if (existingCards.length > 0) {
+      return { status: "already_seeded", cardCount: existingCards.length };
+    }
+
+    // Seed default rate card
+    await ctx.db.insert("rateCards", DEFAULT_RATE_CARD);
+
+    return { status: "seeded", cardCount: 1 };
+  },
+});
+
+export const seedAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Check if modules already seeded
+    const existingModules = await ctx.db.query("moduleCatalog").collect();
+    let modulesSeeded = false;
+    if (existingModules.length === 0) {
+      for (const mod of MODULES) {
+        await ctx.db.insert("moduleCatalog", mod);
+      }
+      modulesSeeded = true;
+    }
+
+    // Check if rate cards already seeded
+    const existingCards = await ctx.db.query("rateCards").collect();
+    let rateCardSeeded = false;
+    if (existingCards.length === 0) {
+      await ctx.db.insert("rateCards", DEFAULT_RATE_CARD);
+      rateCardSeeded = true;
+    }
+
+    return {
+      modules: modulesSeeded ? "seeded" : "already_exists",
+      moduleCount: modulesSeeded ? MODULES.length : existingModules.length,
+      rateCard: rateCardSeeded ? "seeded" : "already_exists",
+    };
+  },
+});

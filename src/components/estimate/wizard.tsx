@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "./stepper";
 import { SelectionCard, ModuleCard } from "./selection-card";
@@ -10,7 +13,6 @@ import {
   EstimateConfig,
   PriceRange,
   DEFAULT_CONFIG,
-  calculateEstimate,
   PLATFORM_OPTIONS,
   AUTH_OPTIONS,
   QUALITY_OPTIONS,
@@ -26,25 +28,32 @@ const STEPS = [
 ];
 
 export function Wizard() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [config, setConfig] = useState<EstimateConfig>(DEFAULT_CONFIG);
-  const [priceRange, setPriceRange] = useState<PriceRange>({
-    min: 0,
-    max: 0,
-    confidence: 0,
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use Convex query for live price preview
+  const previewResult = useQuery(api.estimates.preview, {
+    platform: config.platform,
+    authLevel: config.authLevel,
+    modules: config.modules,
+    quality: config.quality,
   });
-  const [isCalculating, setIsCalculating] = useState(false);
 
-  // Recalculate price when config changes
-  useEffect(() => {
-    setIsCalculating(true);
-    const timer = setTimeout(() => {
-      setPriceRange(calculateEstimate(config));
-      setIsCalculating(false);
-    }, 300); // Debounce
+  // Use Convex mutation to create estimate
+  const createEstimate = useMutation(api.estimates.create);
 
-    return () => clearTimeout(timer);
-  }, [config]);
+  // Convert preview result to PriceRange format
+  const priceRange: PriceRange = previewResult
+    ? {
+        min: previewResult.priceMin,
+        max: previewResult.priceMax,
+        confidence: previewResult.confidence,
+      }
+    : { min: 0, max: 0, confidence: 0 };
+
+  const isCalculating = previewResult === undefined;
 
   const updateConfig = useCallback(
     <K extends keyof EstimateConfig>(key: K, value: EstimateConfig[K]) => {
@@ -89,9 +98,26 @@ export function Wizard() {
     }
   };
 
-  const handleGetQuote = () => {
-    // Would navigate to results page
-    alert("Quote requested! This would navigate to /estimate/results/:id");
+  const handleGetQuote = async () => {
+    if (!config.platform || !config.authLevel || !config.quality) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await createEstimate({
+        platform: config.platform,
+        authLevel: config.authLevel,
+        modules: config.modules,
+        quality: config.quality,
+      });
+
+      // Navigate to results page
+      router.push(`/estimate/results/${result.estimateId}`);
+    } catch (error) {
+      console.error("Failed to create estimate:", error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -181,23 +207,50 @@ export function Wizard() {
             ) : (
               <Button
                 onClick={handleGetQuote}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isSubmitting}
                 className="h-11"
               >
-                Get Full Quote
-                <svg
-                  className="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
+                {isSubmitting ? (
+                  <>
+                    <svg
+                      className="w-4 h-4 mr-2 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Creating Estimate...
+                  </>
+                ) : (
+                  <>
+                    Get Full Quote
+                    <svg
+                      className="w-4 h-4 ml-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7l5 5m0 0l-5 5m5-5H6"
+                      />
+                    </svg>
+                  </>
+                )}
               </Button>
             )}
           </div>
