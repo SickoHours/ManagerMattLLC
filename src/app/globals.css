@@ -1,0 +1,384 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================
+   ManagerMattLLC Luxury Design System
+   Based on docs/ui/STYLE_GUIDE.md
+   ============================================ */
+
+@theme inline {
+  /* Colors - mapped from CSS variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Custom luxury colors */
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-active: var(--brand-active);
+  --color-brand-light: var(--brand-light);
+
+  /* Font family */
+  --font-sans: var(--font-inter);
+
+  /* Border radius - luxury scale */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows - soft, layered for luxury feel */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.10);
+
+  /* Spacing scale (8px grid) */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-32: 128px;
+
+  /* Animation timing */
+  --duration-micro: 100ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+  --ease-out: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root {
+  /* Base radius for shadcn compatibility */
+  --radius: 12px;
+
+  /* Page backgrounds */
+  --background: #FAFAFA;
+  --foreground: #0A0A0A;
+  --surface: #FFFFFF;
+  --subtle: #F5F5F5;
+
+  /* Card */
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+
+  /* Popover */
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+
+  /* Primary - our accent blue */
+  --primary: #0066FF;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --secondary: #F5F5F5;
+  --secondary-foreground: #0A0A0A;
+
+  /* Muted */
+  --muted: #F5F5F5;
+  --muted-foreground: #A3A3A3;
+
+  /* Accent - using primary brand color */
+  --accent: #0066FF;
+  --accent-foreground: #FFFFFF;
+
+  /* Brand colors */
+  --brand: #0066FF;
+  --brand-hover: #0052CC;
+  --brand-active: #0041A3;
+  --brand-light: #E6F0FF;
+
+  /* Destructive */
+  --destructive: #EF4444;
+
+  /* Borders */
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #0066FF;
+
+  /* Text colors */
+  --text-primary: #0A0A0A;
+  --text-secondary: #525252;
+  --text-muted: #A3A3A3;
+
+  /* Semantic colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+}
+
+/* Dark mode - minimal, keeping luxury feel */
+.dark {
+  --background: #0A0A0A;
+  --foreground: #FAFAFA;
+  --surface: #171717;
+  --subtle: #262626;
+  --card: #171717;
+  --card-foreground: #FAFAFA;
+  --popover: #171717;
+  --popover-foreground: #FAFAFA;
+  --primary: #3B82F6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #262626;
+  --secondary-foreground: #FAFAFA;
+  --muted: #262626;
+  --muted-foreground: #737373;
+  --accent: #3B82F6;
+  --accent-foreground: #FFFFFF;
+  --brand: #3B82F6;
+  --brand-hover: #2563EB;
+  --brand-active: #1D4ED8;
+  --brand-light: #1E3A5F;
+  --destructive: #DC2626;
+  --border: #262626;
+  --input: #262626;
+  --ring: #3B82F6;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A3A3A3;
+  --text-muted: #737373;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Focus styles - accessibility requirement */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  /* Premium typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Typography scale utilities */
+  .text-display {
+    font-size: 72px;
+    line-height: 80px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .text-h1 {
+    font-size: 48px;
+    line-height: 56px;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  .text-h2 {
+    font-size: 36px;
+    line-height: 44px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+
+  .text-h3 {
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+
+  .text-h4 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+  }
+
+  .text-body {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .text-body-sm {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .text-label {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+  }
+
+  .text-label-xs {
+    font-size: 11px;
+    line-height: 14px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Responsive typography */
+  @media (max-width: 768px) {
+    .text-display {
+      font-size: 48px;
+      line-height: 56px;
+    }
+
+    .text-h1 {
+      font-size: 36px;
+      line-height: 44px;
+    }
+
+    .text-h2 {
+      font-size: 28px;
+      line-height: 36px;
+    }
+  }
+
+  /* Custom text colors */
+  .text-primary-custom {
+    color: var(--text-primary);
+  }
+
+  .text-secondary-custom {
+    color: var(--text-secondary);
+  }
+
+  .text-muted-custom {
+    color: var(--text-muted);
+  }
+
+  /* Brand color utilities */
+  .text-brand {
+    color: var(--brand);
+  }
+
+  .bg-brand {
+    background-color: var(--brand);
+  }
+
+  .bg-brand-hover {
+    background-color: var(--brand-hover);
+  }
+
+  .bg-brand-light {
+    background-color: var(--brand-light);
+  }
+
+  .bg-surface {
+    background-color: var(--surface);
+  }
+
+  .bg-subtle {
+    background-color: var(--subtle);
+  }
+
+  /* Transition utilities */
+  .transition-fast {
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-normal {
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-slow {
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.0, 0, 0.2, 1);
+  }
+
+  /* Number tween animation for prices */
+  .price-tween {
+    transition: all 400ms cubic-bezier(0.0, 0, 0.2, 1);
+  }
+
+  /* Skeleton loading animation */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #F5F5F5 25%,
+      #EBEBEB 50%,
+      #F5F5F5 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Container utilities */
+  .container-tight {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .container-wide {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Section spacing */
+  .section-padding {
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+
+  .section-padding-lg {
+    padding-top: 96px;
+    padding-bottom: 96px;
+  }
+
+  @media (max-width: 768px) {
+    .section-padding {
+      padding-top: 48px;
+      padding-bottom: 48px;
+    }
+
+    .section-padding-lg {
+      padding-top: 64px;
+      padding-bottom: 64px;
+    }
+  }
+}
