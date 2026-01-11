@@ -25,6 +25,33 @@ export default defineSchema({
       v.literal("production"),
       v.literal("unknown")
     ),
+    // Additional factors (PRD Section 8.3)
+    // Optional for backward compatibility with existing estimates
+    integrations: v.optional(
+      v.union(
+        v.literal("none"),
+        v.literal("simple"),
+        v.literal("moderate"),
+        v.literal("complex"),
+        v.literal("unknown")
+      )
+    ),
+    urgency: v.optional(
+      v.union(
+        v.literal("standard"),
+        v.literal("fast"),
+        v.literal("rush"),
+        v.literal("unknown")
+      )
+    ),
+    iteration: v.optional(
+      v.union(
+        v.literal("minimal"),
+        v.literal("standard"),
+        v.literal("exploratory"),
+        v.literal("unknown")
+      )
+    ),
 
     // Calculated results
     priceMin: v.number(),
@@ -35,6 +62,22 @@ export default defineSchema({
     hoursMax: v.number(),
     daysMin: v.number(),
     daysMax: v.number(),
+
+    // Token-based pricing (PRD Section 8.5)
+    // Optional for backward compatibility with existing estimates
+    tokensIn: v.optional(v.number()),
+    tokensOut: v.optional(v.number()),
+    materialsCost: v.optional(v.number()),
+    laborCost: v.optional(v.number()),
+    riskBuffer: v.optional(v.number()),
+
+    // Degraded mode (PRD Section 12.2)
+    degradedMode: v.optional(v.boolean()),
+    degradedReason: v.optional(v.string()),
+
+    // Architect review (PRD Section 8.6)
+    needsReview: v.optional(v.boolean()),
+    reviewTriggerModules: v.optional(v.array(v.string())),
 
     // Explainability
     costDrivers: v.array(
@@ -70,6 +113,18 @@ export default defineSchema({
       hoursMax: v.number(),
       daysMin: v.number(),
       daysMax: v.number(),
+      // Token-based pricing (optional for backward compatibility)
+      tokensIn: v.optional(v.number()),
+      tokensOut: v.optional(v.number()),
+      materialsCost: v.optional(v.number()),
+      laborCost: v.optional(v.number()),
+      riskBuffer: v.optional(v.number()),
+      // Degraded mode
+      degradedMode: v.optional(v.boolean()),
+      degradedReason: v.optional(v.string()),
+      // Architect review
+      needsReview: v.optional(v.boolean()),
+      reviewTriggerModules: v.optional(v.array(v.string())),
       costDrivers: v.array(
         v.object({
           name: v.string(),
@@ -106,6 +161,8 @@ export default defineSchema({
     baseTokens: v.number(),
     riskWeight: v.number(),
     dependencies: v.array(v.string()),
+    // PRD Section 8.6: Architect review trigger for complex modules
+    architectReviewTrigger: v.optional(v.boolean()),
   }).index("by_moduleId", ["moduleId"]),
 
   // rateCards - pricing configuration

@@ -9,6 +9,7 @@ import { Stepper } from "./stepper";
 import { SelectionCard, ModuleCard } from "./selection-card";
 import { OrderSummary } from "./order-summary";
 import { SummaryPill } from "./summary-pill";
+import { AskHumanButton } from "./ask-human-button";
 import {
   EstimateConfig,
   PriceRange,
@@ -19,6 +20,7 @@ import {
   MODULES,
   CATEGORY_LABELS,
 } from "@/lib/mock-data";
+import { TEMPLATES } from "./mini-wizard";
 
 const STEPS = [
   { id: "platform", label: "Platform" },
@@ -27,11 +29,31 @@ const STEPS = [
   { id: "quality", label: "Quality" },
 ];
 
-export function Wizard() {
+interface WizardProps {
+  initialConfig?: Partial<EstimateConfig>;
+}
+
+export function Wizard({ initialConfig }: WizardProps = {}) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [config, setConfig] = useState<EstimateConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<EstimateConfig>({
+    ...DEFAULT_CONFIG,
+    ...initialConfig,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(!initialConfig);
+
+  // Apply a template
+  const applyTemplate = (templateKey: keyof typeof TEMPLATES) => {
+    const template = TEMPLATES[templateKey];
+    setConfig({
+      platform: template.preset.platform,
+      authLevel: template.preset.authLevel,
+      modules: template.preset.modules,
+      quality: template.preset.quality,
+    });
+    setShowTemplates(false);
+  };
 
   // Use Convex query for live price preview
   const previewResult = useQuery(api.estimates.preview, {
@@ -132,6 +154,42 @@ export function Wizard() {
             onStepClick={(index) => index <= currentStep && setCurrentStep(index)}
           />
         </div>
+
+        {/* Template quick-start banner (shown when no preset) */}
+        {showTemplates && currentStep === 0 && (
+          <div className="mb-6 p-4 bg-subtle rounded-xl border border-border-default">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-body font-medium text-foreground">
+                Quick start with a template
+              </p>
+              <button
+                onClick={() => setShowTemplates(false)}
+                className="text-secondary-custom hover:text-foreground transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(TEMPLATES)
+                .filter(([key]) => key !== "custom")
+                .map(([key, template]) => (
+                  <button
+                    key={key}
+                    onClick={() => applyTemplate(key as keyof typeof TEMPLATES)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface rounded-lg border border-border-default hover:border-accent/50 text-body-sm text-foreground transition-colors"
+                  >
+                    {template.icon}
+                    <span>{template.label}</span>
+                  </button>
+                ))}
+            </div>
+            <p className="mt-3 text-body-sm text-secondary-custom">
+              Select a template to pre-fill all options, then customize as needed.
+            </p>
+          </div>
+        )}
 
         {/* Step content */}
         <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md">
@@ -274,6 +332,9 @@ export function Wizard() {
         isCalculating={isCalculating}
         onGetQuote={handleGetQuote}
       />
+
+      {/* Floating "Ask a Human" button */}
+      <AskHumanButton floating />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { formatPrice } from "@/lib/mock-data";
+import { AnimatedPrice, AnimatedPercent, AnimatedNumber } from "@/components/ui/animated-number";
 
 interface ResultsSummaryProps {
   estimate: {
@@ -17,6 +18,7 @@ interface ResultsSummaryProps {
     quality: string;
     modules: string[];
     moduleDetails?: { id: string; name: string; category: string }[];
+    degradedMode?: boolean;
   };
 }
 
@@ -58,35 +60,35 @@ export function ResultsSummary({ estimate }: ResultsSummaryProps) {
           Estimated Cost Range
         </p>
         <div className="flex items-baseline justify-center gap-2">
-          <span className="text-h2 text-foreground">
-            {formatPrice(estimate.priceMin)}
-          </span>
+          <AnimatedPrice value={estimate.priceMin} className="text-h2 text-foreground" />
           <span className="text-body text-secondary-custom">to</span>
-          <span className="text-h2 text-foreground">
-            {formatPrice(estimate.priceMax)}
-          </span>
+          <AnimatedPrice value={estimate.priceMax} className="text-h2 text-foreground" />
         </div>
         <p className="mt-2 text-body-sm text-secondary-custom">
-          Most likely: {formatPrice(estimate.priceMid)}
+          Most likely: <AnimatedPrice value={estimate.priceMid} />
         </p>
       </div>
 
       {/* Confidence and timeline */}
-      <div className="grid grid-cols-2 gap-6 py-6 border-b border-border-default">
-        <div className="text-center">
-          <p className="text-label text-secondary-custom uppercase tracking-wider mb-1">
-            Confidence
-          </p>
-          <p className={`text-h3 font-semibold ${confidenceColor}`}>
-            {estimate.confidence}%
-          </p>
-        </div>
+      <div className={`grid ${estimate.degradedMode ? 'grid-cols-1' : 'grid-cols-2'} gap-6 py-6 border-b border-border-default`}>
+        {!estimate.degradedMode && (
+          <div className="text-center">
+            <p className="text-label text-secondary-custom uppercase tracking-wider mb-1">
+              Confidence
+            </p>
+            <p className={`text-h3 font-semibold ${confidenceColor}`}>
+              <AnimatedPercent value={estimate.confidence} />
+            </p>
+          </div>
+        )}
         <div className="text-center">
           <p className="text-label text-secondary-custom uppercase tracking-wider mb-1">
             Timeline
           </p>
           <p className="text-h3 font-semibold text-foreground">
-            {Math.round(estimate.daysMin)}-{Math.round(estimate.daysMax)} days
+            <AnimatedNumber value={Math.round(estimate.daysMin)} formatFn={(v) => v.toString()} />
+            -
+            <AnimatedNumber value={Math.round(estimate.daysMax)} formatFn={(v) => v.toString()} /> days
           </p>
         </div>
       </div>

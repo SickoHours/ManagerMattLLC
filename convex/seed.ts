@@ -1,6 +1,7 @@
 import { mutation } from "./_generated/server";
 
 // Module catalog data (migrated from src/lib/mock-data.ts)
+// architectReviewTrigger: true for complex modules that need human review
 const MODULES = [
   // Core
   {
@@ -12,6 +13,7 @@ const MODULES = [
     baseTokens: 50000,
     riskWeight: 1.0,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "analytics",
@@ -22,6 +24,7 @@ const MODULES = [
     baseTokens: 80000,
     riskWeight: 1.2,
     dependencies: ["dashboard"],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "settings",
@@ -32,6 +35,7 @@ const MODULES = [
     baseTokens: 30000,
     riskWeight: 1.0,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   // Data
   {
@@ -43,6 +47,7 @@ const MODULES = [
     baseTokens: 60000,
     riskWeight: 1.1,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "api",
@@ -53,6 +58,7 @@ const MODULES = [
     baseTokens: 70000,
     riskWeight: 1.2,
     dependencies: ["database"],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "file-storage",
@@ -63,6 +69,7 @@ const MODULES = [
     baseTokens: 40000,
     riskWeight: 1.1,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   // Communication
   {
@@ -74,6 +81,7 @@ const MODULES = [
     baseTokens: 35000,
     riskWeight: 1.0,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "notifications",
@@ -84,6 +92,7 @@ const MODULES = [
     baseTokens: 45000,
     riskWeight: 1.1,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "chat",
@@ -94,6 +103,7 @@ const MODULES = [
     baseTokens: 90000,
     riskWeight: 1.4,
     dependencies: ["database"],
+    architectReviewTrigger: true, // Complex real-time infrastructure
   },
   // Payments
   {
@@ -105,6 +115,7 @@ const MODULES = [
     baseTokens: 55000,
     riskWeight: 1.3,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "subscriptions",
@@ -115,6 +126,7 @@ const MODULES = [
     baseTokens: 75000,
     riskWeight: 1.4,
     dependencies: ["checkout"],
+    architectReviewTrigger: true, // Complex billing logic
   },
   {
     moduleId: "invoices",
@@ -125,6 +137,7 @@ const MODULES = [
     baseTokens: 40000,
     riskWeight: 1.1,
     dependencies: [],
+    architectReviewTrigger: false,
   },
   // AI
   {
@@ -136,6 +149,7 @@ const MODULES = [
     baseTokens: 100000,
     riskWeight: 1.3,
     dependencies: ["api"],
+    architectReviewTrigger: false,
   },
   {
     moduleId: "image-gen",
@@ -146,6 +160,7 @@ const MODULES = [
     baseTokens: 120000,
     riskWeight: 1.5,
     dependencies: ["api", "file-storage"],
+    architectReviewTrigger: true, // Complex AI infrastructure
   },
   {
     moduleId: "embeddings",
@@ -156,6 +171,7 @@ const MODULES = [
     baseTokens: 80000,
     riskWeight: 1.4,
     dependencies: ["database", "api"],
+    architectReviewTrigger: true, // Complex vector DB setup
   },
 ];
 

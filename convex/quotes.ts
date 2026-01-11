@@ -40,6 +40,18 @@ export const create = mutation({
       hoursMax: estimate.hoursMax,
       daysMin: estimate.daysMin,
       daysMax: estimate.daysMax,
+      // Token-based pricing
+      tokensIn: estimate.tokensIn,
+      tokensOut: estimate.tokensOut,
+      materialsCost: estimate.materialsCost,
+      laborCost: estimate.laborCost,
+      riskBuffer: estimate.riskBuffer,
+      // Degraded mode
+      degradedMode: estimate.degradedMode,
+      degradedReason: estimate.degradedReason,
+      // Architect review
+      needsReview: estimate.needsReview,
+      reviewTriggerModules: estimate.reviewTriggerModules,
       costDrivers: estimate.costDrivers,
       assumptions: estimate.assumptions,
     };
@@ -291,6 +303,18 @@ export const createAndSend = mutation({
       hoursMax: estimate.hoursMax,
       daysMin: estimate.daysMin,
       daysMax: estimate.daysMax,
+      // Token-based pricing
+      tokensIn: estimate.tokensIn,
+      tokensOut: estimate.tokensOut,
+      materialsCost: estimate.materialsCost,
+      laborCost: estimate.laborCost,
+      riskBuffer: estimate.riskBuffer,
+      // Degraded mode
+      degradedMode: estimate.degradedMode,
+      degradedReason: estimate.degradedReason,
+      // Architect review
+      needsReview: estimate.needsReview,
+      reviewTriggerModules: estimate.reviewTriggerModules,
       costDrivers: estimate.costDrivers,
       assumptions: estimate.assumptions,
     };
