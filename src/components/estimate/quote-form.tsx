@@ -68,7 +68,7 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
   // Already quoted state
   if (estimate.status === "quoted" && !isSuccess) {
     return (
-      <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md sticky top-24">
+      <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md">
         <div className="text-center py-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center">
             <svg
@@ -97,7 +97,7 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
   // Success state
   if (isSuccess && shareId) {
     return (
-      <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md sticky top-24">
+      <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md">
         <div className="text-center py-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center">
             <svg
@@ -140,7 +140,7 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
 
   // Form state
   return (
-    <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md sticky top-24">
+    <div className="bg-surface rounded-2xl p-6 md:p-8 shadow-md">
       <h2 className="text-h3 text-foreground mb-2">Get Your Quote</h2>
       <p className="text-body-sm text-secondary-custom mb-6">
         Enter your email to receive a detailed quote with everything you need to get started.
