@@ -11,8 +11,8 @@ export default function HomePage() {
 
       <main className="flex-1">
         <Hero />
-        <TrustSection />
         <NotForSection />
+        <TrustSection />
       </main>
 
       <Footer />

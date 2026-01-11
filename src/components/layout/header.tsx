@@ -9,6 +9,7 @@ const navLinks = [
   { href: "/work", label: "Work" },
   { href: "/process", label: "Process" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {
@@ -68,12 +69,14 @@ export function Header() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 -mr-2 text-foreground hover:bg-subtle rounded-md transition-colors"
               aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
             >
               <svg
                 className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 {mobileMenuOpen ? (
                   <path

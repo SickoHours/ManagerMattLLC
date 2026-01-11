@@ -1,3 +1,7 @@
+"use client";
+
+import { FadeIn } from "@/components/ui/fade-in";
+
 const trustItems = [
   {
     icon: (
@@ -6,6 +10,7 @@ const trustItems = [
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -26,6 +31,7 @@ const trustItems = [
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -46,6 +52,7 @@ const trustItems = [
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"
@@ -67,20 +74,22 @@ export function TrustSection() {
       <div className="container-wide mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
           {trustItems.map((item, index) => (
-            <div key={index} className="text-center">
-              {/* Icon */}
-              <div className="inline-flex items-center justify-center text-secondary-custom">
-                {item.icon}
+            <FadeIn key={index} delay={index * 150} direction="up">
+              <div className="text-center">
+                {/* Icon */}
+                <div className="inline-flex items-center justify-center text-secondary-custom">
+                  {item.icon}
+                </div>
+
+                {/* Title */}
+                <h3 className="mt-6 text-h3 text-foreground">{item.title}</h3>
+
+                {/* Description */}
+                <p className="mt-3 text-body-sm text-secondary-custom max-w-xs mx-auto">
+                  {item.description}
+                </p>
               </div>
-
-              {/* Title */}
-              <h3 className="mt-6 text-h3 text-foreground">{item.title}</h3>
-
-              {/* Description */}
-              <p className="mt-3 text-body-sm text-secondary-custom max-w-xs mx-auto">
-                {item.description}
-              </p>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </div>

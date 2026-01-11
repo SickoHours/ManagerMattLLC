@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as contact from "../contact.js";
 import type * as estimates from "../estimates.js";
 import type * as lib_estimator from "../lib/estimator.js";
 import type * as quotes from "../quotes.js";
@@ -20,6 +21,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  contact: typeof contact;
   estimates: typeof estimates;
   "lib/estimator": typeof lib_estimator;
   quotes: typeof quotes;

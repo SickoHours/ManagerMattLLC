@@ -100,7 +100,7 @@ export function Wizard({ initialConfig }: WizardProps = {}) {
       case 1:
         return config.authLevel !== null;
       case 2:
-        return true; // Modules are optional
+        return config.modules.length > 0; // At least one module required
       case 3:
         return config.quality !== null;
       default:
@@ -390,6 +390,11 @@ function StepPlatform({
             <p className="mt-1 text-body-sm text-secondary-custom">
               {option.description}
             </p>
+            {option.id === "unknown" && (
+              <p className="mt-2 text-label text-muted-foreground">
+                This will show wider price ranges
+              </p>
+            )}
           </SelectionCard>
         ))}
       </div>
@@ -451,6 +456,11 @@ function StepAuth({
             <p className="mt-1 text-body-sm text-secondary-custom">
               {option.description}
             </p>
+            {option.id === "unknown" && (
+              <p className="mt-2 text-label text-muted-foreground">
+                This will show wider price ranges
+              </p>
+            )}
           </SelectionCard>
         ))}
       </div>
@@ -472,8 +482,18 @@ function StepModules({
     <div>
       <h2 className="text-h3 text-foreground">What features do you need?</h2>
       <p className="mt-2 text-body text-secondary-custom">
-        Select all the modules you want to include. You can always add more later.
+        Select at least one module for your project. You can always add more later.
       </p>
+
+      {/* Module count indicator */}
+      <div className="mt-4 flex items-center gap-2">
+        <span className={`text-body-sm ${selected.length === 0 ? 'text-destructive' : 'text-success'}`}>
+          {selected.length} module{selected.length !== 1 ? 's' : ''} selected
+        </span>
+        {selected.length === 0 && (
+          <span className="text-body-sm text-destructive">(at least 1 required)</span>
+        )}
+      </div>
 
       <div className="mt-8 space-y-8">
         {categories.map((category) => {

@@ -19,7 +19,11 @@ interface QuoteFormProps {
 
 export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
   const [email, setEmail] = useState("");
-  const [assumptionsConfirmed, setAssumptionsConfirmed] = useState(false);
+  const [assumptions, setAssumptions] = useState({
+    featureListComplete: false,
+    rangesMayChange: false,
+    thirdPartyCosts: false,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [shareId, setShareId] = useState<string | null>(null);
@@ -31,7 +35,12 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const canSubmit = email && isValidEmail(email) && assumptionsConfirmed && !isSubmitting;
+  const allAssumptionsConfirmed =
+    assumptions.featureListComplete &&
+    assumptions.rangesMayChange &&
+    assumptions.thirdPartyCosts;
+
+  const canSubmit = email && isValidEmail(email) && allAssumptionsConfirmed && !isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +53,7 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
       const result = await createAndSendQuote({
         estimateId,
         email,
-        assumptionsConfirmed,
+        assumptionsConfirmed: allAssumptionsConfirmed,
       });
 
       setShareId(result.shareId);
@@ -170,19 +179,68 @@ export function QuoteForm({ estimateId, estimate }: QuoteFormProps) {
           />
         </div>
 
-        {/* Assumptions checkbox */}
-        <div className="flex items-start gap-3">
-          <input
-            type="checkbox"
-            id="assumptions"
-            checked={assumptionsConfirmed}
-            onChange={(e) => setAssumptionsConfirmed(e.target.checked)}
-            className="mt-1 w-4 h-4 rounded border-border-default text-accent focus:ring-ring"
-            disabled={isSubmitting}
-          />
-          <label htmlFor="assumptions" className="text-body-sm text-secondary-custom">
-            I have reviewed and confirm the assumptions above are accurate for my project.
-          </label>
+        {/* Assumptions checklist */}
+        <div className="space-y-3">
+          <p className="text-body-sm font-medium text-foreground">
+            Please confirm the following:
+          </p>
+
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="featureListComplete"
+              checked={assumptions.featureListComplete}
+              onChange={(e) =>
+                setAssumptions((prev) => ({
+                  ...prev,
+                  featureListComplete: e.target.checked,
+                }))
+              }
+              className="mt-1 w-4 h-4 rounded border-border-default text-accent focus:ring-ring"
+              disabled={isSubmitting}
+            />
+            <label htmlFor="featureListComplete" className="text-body-sm text-secondary-custom">
+              My feature list is complete for this estimate
+            </label>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="rangesMayChange"
+              checked={assumptions.rangesMayChange}
+              onChange={(e) =>
+                setAssumptions((prev) => ({
+                  ...prev,
+                  rangesMayChange: e.target.checked,
+                }))
+              }
+              className="mt-1 w-4 h-4 rounded border-border-default text-accent focus:ring-ring"
+              disabled={isSubmitting}
+            />
+            <label htmlFor="rangesMayChange" className="text-body-sm text-secondary-custom">
+              I understand ranges may change with new requirements
+            </label>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="thirdPartyCosts"
+              checked={assumptions.thirdPartyCosts}
+              onChange={(e) =>
+                setAssumptions((prev) => ({
+                  ...prev,
+                  thirdPartyCosts: e.target.checked,
+                }))
+              }
+              className="mt-1 w-4 h-4 rounded border-border-default text-accent focus:ring-ring"
+              disabled={isSubmitting}
+            />
+            <label htmlFor="thirdPartyCosts" className="text-body-sm text-secondary-custom">
+              I understand third-party services (hosting, APIs) may cost extra
+            </label>
+          </div>
         </div>
 
         {/* Error message */}
