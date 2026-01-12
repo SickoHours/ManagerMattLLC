@@ -56,8 +56,14 @@ export function Header() {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="flex items-center gap-4">
+          {/* CTA Buttons */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/sign-in"
+              className="hidden sm:block text-sm text-secondary-custom hover:text-foreground transition-colors"
+            >
+              Sign In
+            </Link>
             <Link href="/contact" className="hidden sm:block">
               <Button className="h-10 px-5 text-sm font-medium">
                 Contact
@@ -118,6 +124,13 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Button className="w-full h-11">Contact</Button>
+              </Link>
+              <Link
+                href="/sign-in"
+                className="mt-2 py-2 text-center text-body text-secondary-custom hover:text-foreground transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign In
               </Link>
             </nav>
           </div>
