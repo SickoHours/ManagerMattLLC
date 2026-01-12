@@ -6,8 +6,7 @@ import { UserButton } from "@clerk/nextjs";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { name: "Inquiries", href: "/admin/inquiries", icon: Inbox },
-  { name: "Estimates", href: "/admin/estimates", icon: Calculator },
+  { name: "Estimates", href: "/admin/inquiries", icon: Calculator },
   { name: "Quotes", href: "/admin/quotes", icon: FileText },
   { name: "Playground", href: "/admin/playground", icon: Beaker },
 ];

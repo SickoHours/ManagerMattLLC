@@ -382,4 +382,174 @@ export default defineSchema({
     createdAt: v.number(),
     reviewedAt: v.optional(v.number()),
   }).index("by_status", ["status"]).index("by_email", ["email"]),
+
+  // playgroundTests - developer testing without email requirement
+  playgroundTests: defineTable({
+    // Project description
+    description: v.string(),
+
+    // AI-generated questions (V2 format)
+    generatedQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    answers: v.optional(v.string()),
+
+    // PRD data
+    initialPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+    enhancedPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+
+    // Reviewer data
+    reviewerGaps: v.optional(v.array(v.string())),
+    reviewerRecommendations: v.optional(v.array(v.string())),
+    reviewerQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    reviewerAnswers: v.optional(v.string()),
+
+    // Line items and estimate
+    lineItems: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          hours: v.number(),
+          cost: v.number(),
+          confidence: v.string(),
+        })
+      )
+    ),
+    estimateMin: v.optional(v.number()),
+    estimateMax: v.optional(v.number()),
+    estimateSubtotal: v.optional(v.number()),
+    estimateRiskBuffer: v.optional(v.number()),
+    estimateRiskPercent: v.optional(v.number()),
+    estimateTotalHours: v.optional(v.number()),
+    estimateConfidence: v.optional(v.string()),
+
+    // Debug info - token usage and timing
+    debugInfo: v.optional(
+      v.object({
+        questionsCall: v.optional(
+          v.object({
+            tokensIn: v.number(),
+            tokensOut: v.number(),
+            durationMs: v.number(),
+            rawResponse: v.optional(v.string()),
+          })
+        ),
+        prdCall: v.optional(
+          v.object({
+            tokensIn: v.number(),
+            tokensOut: v.number(),
+            durationMs: v.number(),
+            rawResponse: v.optional(v.string()),
+          })
+        ),
+        reviewCall: v.optional(
+          v.object({
+            tokensIn: v.number(),
+            tokensOut: v.number(),
+            durationMs: v.number(),
+            rawResponse: v.optional(v.string()),
+          })
+        ),
+        enhanceCall: v.optional(
+          v.object({
+            tokensIn: v.number(),
+            tokensOut: v.number(),
+            durationMs: v.number(),
+            rawResponse: v.optional(v.string()),
+          })
+        ),
+        estimateCall: v.optional(
+          v.object({
+            tokensIn: v.number(),
+            tokensOut: v.number(),
+            durationMs: v.number(),
+            rawResponse: v.optional(v.string()),
+          })
+        ),
+        totalCost: v.optional(v.number()),
+      })
+    ),
+
+    // Current stage
+    stage: v.union(
+      v.literal("questions"),
+      v.literal("initial-prd"),
+      v.literal("review"),
+      v.literal("enhanced"),
+      v.literal("estimated"),
+      v.literal("error")
+    ),
+
+    // Error info if something failed
+    error: v.optional(v.string()),
+
+    // Metadata
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }),
 });
