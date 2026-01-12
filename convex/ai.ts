@@ -79,34 +79,13 @@ export const generateQuestions = action({
     description: v.string(),
   },
   handler: async (_, args) => {
-    const systemPrompt = `You are an AI assistant helping non-technical users scope software projects.
-Your job is to ask simple, jargon-free questions to understand what they want to build.
+    const systemPrompt = `Help non-technical users scope software projects. Ask 3-5 simple, jargon-free questions.
 
-## Core Principles
-- NEVER use technical jargon (no "auth", "API", "database", "endpoints", "backend", "frontend")
-- Translate technical concepts to business language
-- Each question should feel like a natural conversation
-- Ask 3-5 questions maximum
-- Questions should help clarify: who uses it, how they access it, what they do with it, how data flows
+NO technical terms (auth, API, database, backend, frontend). Use business language.
 
-## Question Format
-Return a JSON object with this exact structure:
-{
-  "questions": [
-    {
-      "id": 1,
-      "question": "How should people access this?",
-      "options": [
-        {"key": "A", "label": "On their phones", "emoji": "📱"},
-        {"key": "B", "label": "On a computer", "emoji": "💻"},
-        {"key": "C", "label": "Both", "emoji": "📱💻"}
-      ]
-    }
-  ]
-}
+Return JSON: {"questions":[{"id":1,"question":"How should people access this?","options":[{"key":"A","label":"On their phones","emoji":"📱"},{"key":"B","label":"On a computer","emoji":"💻"},{"key":"C","label":"Both","emoji":"📱💻"}]}]}
 
-Each question should have 3-4 options. Include relevant emojis to make options scannable.
-Options should be mutually exclusive and cover the main possibilities.`;
+3-4 options per question with emojis. Focus on: who uses it, how accessed, what actions, data flow.`;
 
     const userPrompt = `A user wants to build this:
 
@@ -179,36 +158,11 @@ export const generatePRD = action({
       return `Q: ${q.question}\nA: ${selectedOption?.label || "Not answered"}`;
     }).join("\n\n");
 
-    const systemPrompt = `You are a software architect creating a Product Requirements Document (PRD).
-Based on the user's project description and their answers to clarifying questions, generate a structured PRD.
+    const systemPrompt = `Create a PRD from project description and Q&A answers.
 
-## PRD Structure
-Return a JSON object with this exact structure:
-{
-  "summary": "Brief 1-2 sentence project summary",
-  "userStories": [
-    {
-      "id": "US-001",
-      "title": "Short title",
-      "description": "As a [user type], I want to [action] so that [benefit]",
-      "acceptanceCriteria": ["Specific testable criterion 1", "Criterion 2"]
-    }
-  ],
-  "functionalRequirements": [
-    {
-      "id": "FR-001",
-      "description": "The system shall..."
-    }
-  ],
-  "nonGoals": ["Things explicitly out of scope"]
-}
+Return JSON: {"summary":"1-2 sentences","userStories":[{"id":"US-001","title":"Short title","description":"As a [user], I want [action] so that [benefit]","acceptanceCriteria":["testable criterion"]}],"functionalRequirements":[{"id":"FR-001","description":"The system shall..."}],"nonGoals":["out of scope items"]}
 
-## Guidelines
-- Generate 4-8 user stories that cover the core functionality
-- Each story should be small enough to complete in 1-2 days
-- Acceptance criteria must be specific and testable
-- Include 3-6 functional requirements
-- List 2-4 non-goals to set clear boundaries`;
+Generate 4-8 user stories (1-2 day size each), 3-6 functional requirements, 2-4 non-goals.`;
 
     const userPrompt = `Project Description:
 "${args.description}"
@@ -268,64 +222,15 @@ export const estimateFromPRD = action({
     timeline: v.string(),
   },
   handler: async (_, args) => {
-    const systemPrompt = `You are a software cost estimator for an AI-accelerated development agency.
+    const systemPrompt = `Software cost estimator. Rate: $150/hr. Minimum: $1,500.
 
-## Pricing Rules
-- Hourly rate: $150/hr (AI-accelerated development)
-- Minimum project: $1,500
+Hours guide: CRUD=2-4, Auth=4-6, Team=6-10, Mobile=4-8, Dashboard=8-12, Realtime=6-10, GPS=6-10, Payment=8-12, AI=10-16, Upload=3-5, Sync=4-6, Notif=4-6, Search=4-8, Export=4-8
 
-## Estimation Guidelines by Story Type
-| Type | Hours | Notes |
-|------|-------|-------|
-| Simple CRUD screen | 2-4 | Basic forms, lists |
-| Login/Auth | 4-6 | Email/password |
-| Team/User management | 6-10 | Invites, roles |
-| Mobile screen | 4-8 | React Native |
-| Dashboard/Analytics | 8-12 | Charts, data viz |
-| Real-time feature | 6-10 | Live updates |
-| GPS/Location | 6-10 | Maps, tracking |
-| Payment integration | 8-12 | Stripe |
-| AI feature | 10-16 | LLM integration |
-| File upload/storage | 3-5 | S3, processing |
-| Data sync | 4-6 | Between platforms |
-| Notifications | 4-6 | Push/email |
-| Search | 4-8 | Depends on complexity |
-| Export/Reports | 4-8 | PDF, CSV |
+Multipliers: just-me=0.8x, team=1.0x, customers=1.2x, everyone=1.4x | asap=1.15x (others=1.0x)
 
-## User Type Multipliers
-- "just-me": 0.8x (simpler requirements)
-- "team": 1.0x (standard)
-- "customers": 1.2x (needs polish, error handling)
-- "everyone": 1.4x (most complex)
+Return JSON: {"lineItems":[{"id":"US-001","title":"name","hours":6,"cost":900,"confidence":"high|medium|low"}],"subtotal":N,"riskBuffer":N,"riskPercent":10|15|20,"total":{"min":N,"max":N},"totalHours":N,"confidence":"high|medium|low","notes":["assumptions"]}
 
-## Timeline Multipliers
-- "exploring": 1.0x
-- "soon": 1.0x
-- "asap": 1.15x (rush premium)
-
-## Output Format
-Return JSON:
-{
-  "lineItems": [
-    {
-      "id": "US-001",
-      "title": "Feature name",
-      "hours": 6,
-      "cost": 900,
-      "confidence": "high"
-    }
-  ],
-  "subtotal": 6150,
-  "riskBuffer": 920,
-  "riskPercent": 15,
-  "total": { "min": 6150, "max": 7070 },
-  "totalHours": 41,
-  "confidence": "medium",
-  "notes": ["Important assumptions or risks"]
-}
-
-confidence levels: "high" (well-defined), "medium" (some unknowns), "low" (needs discovery)
-riskPercent: 10% for simple, 15% for medium, 20% for complex/AI`;
+Risk: 10% simple, 15% medium, 20% complex/AI`;
 
     const prdSummary = `
 Summary: ${args.prd.summary}

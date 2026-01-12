@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
@@ -108,6 +108,9 @@ interface FallbackResult {
 
 type Result = AIResult | FallbackResult;
 
+// Character limit for description - ~500 tokens, generous but bounded
+const MAX_CHARS = 2000;
+
 function isAIResult(result: Result): result is AIResult {
   return "lineItems" in result;
 }
@@ -138,6 +141,23 @@ export function InquiryForm() {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Textarea ref for auto-grow
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle description change with auto-grow and character limit
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value.length <= MAX_CHARS) {
+      setDescription(value);
+    }
+    // Auto-grow logic
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 320) + 'px';
+    }
+  }, []);
 
   // Calculate total steps: description + AI questions + userType + timeline + email + result
   const totalSteps = 1 + aiQuestions.length + 3;
@@ -380,13 +400,25 @@ export function InquiryForm() {
           </div>
 
           <div className="space-y-4">
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Example: An app where my sales team can log door knocks and I can see their routes on a map"
-              className="w-full h-40 p-5 text-lg bg-surface border border-border-default rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all placeholder:text-secondary-custom/60"
-              autoFocus
-            />
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={description}
+                onChange={handleDescriptionChange}
+                placeholder="Example: An app where my sales team can log door knocks and I can see their routes on a map. Tell me everything you're imagining — the more detail, the better!"
+                className="w-full min-h-48 p-6 text-lg bg-surface border border-border-default rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all placeholder:text-secondary-custom/60 overflow-y-auto"
+                style={{ maxHeight: '320px' }}
+                autoFocus
+              />
+              {/* Character counter - shows at 80%+ capacity */}
+              {description.length > MAX_CHARS * 0.8 && (
+                <div className="absolute bottom-3 right-4 text-sm">
+                  <span className={description.length > MAX_CHARS * 0.95 ? "text-red-400 font-medium" : "text-secondary-custom"}>
+                    {MAX_CHARS - description.length} characters remaining
+                  </span>
+                </div>
+              )}
+            </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 

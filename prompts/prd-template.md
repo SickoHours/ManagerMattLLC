@@ -2,7 +2,19 @@
 
 This file documents the PRD generation structure used in `convex/ai.ts`.
 
-## PRD JSON Structure
+## System Prompt (Optimized for Token Efficiency)
+
+The actual prompt used in production is compressed (~280 tokens vs ~330 original):
+
+```
+Create a PRD from project description and Q&A answers.
+
+Return JSON: {"summary":"1-2 sentences","userStories":[{"id":"US-001","title":"Short title","description":"As a [user], I want [action] so that [benefit]","acceptanceCriteria":["testable criterion"]}],"functionalRequirements":[{"id":"FR-001","description":"The system shall..."}],"nonGoals":["out of scope items"]}
+
+Generate 4-8 user stories (1-2 day size each), 3-6 functional requirements, 2-4 non-goals.
+```
+
+## PRD JSON Structure (Reference)
 
 ```json
 {
@@ -10,43 +22,23 @@ This file documents the PRD generation structure used in `convex/ai.ts`.
   "userStories": [
     {
       "id": "US-001",
-      "title": "Short title (3-5 words)",
-      "description": "As a [user type], I want to [action] so that [benefit]",
-      "acceptanceCriteria": [
-        "Specific testable criterion 1",
-        "Specific testable criterion 2"
-      ]
+      "title": "Short title",
+      "description": "As a [user], I want [action] so that [benefit]",
+      "acceptanceCriteria": ["Specific testable criterion"]
     }
   ],
   "functionalRequirements": [
-    {
-      "id": "FR-001",
-      "description": "The system shall..."
-    }
+    { "id": "FR-001", "description": "The system shall..." }
   ],
-  "nonGoals": [
-    "Things explicitly out of scope"
-  ]
+  "nonGoals": ["Things explicitly out of scope"]
 }
 ```
 
-## Guidelines
+## Guidelines (Reference)
 
-### User Stories
-- Generate 4-8 user stories that cover the core functionality
-- Each story should be small enough to complete in 1-2 days
-- Acceptance criteria must be specific and testable
-- Use the format: "As a [user], I want to [action] so that [benefit]"
-
-### Functional Requirements
-- Include 3-6 functional requirements
-- Use "The system shall..." statements
-- Focus on behavior, not implementation
-
-### Non-Goals
-- List 2-4 non-goals to set clear boundaries
-- Helps prevent scope creep
-- Be explicit about what's NOT included
+- **User Stories**: 4-8 stories, 1-2 day size each, testable criteria
+- **Functional Requirements**: 3-6 requirements, "The system shall..." format
+- **Non-Goals**: 2-4 items to set clear boundaries
 
 ## Temperature
 
