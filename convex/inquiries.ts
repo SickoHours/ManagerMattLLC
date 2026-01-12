@@ -1,5 +1,6 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
 import { v } from "convex/values";
+import { api } from "./_generated/api";
 
 // Keyword patterns for rough pricing estimation
 const KEYWORD_PATTERNS = {
@@ -244,5 +245,310 @@ export const updateStatus = mutation({
     await ctx.db.patch(args.inquiryId, updates);
 
     return { success: true };
+  },
+});
+
+// ============================================
+// AI-POWERED INQUIRY FLOW
+// ============================================
+
+// Question type for AI-generated questions
+type AIQuestion = {
+  id: number;
+  question: string;
+  options: { key: string; label: string; emoji?: string }[];
+};
+
+// Action to generate AI questions for a project description
+export const getAIQuestions = action({
+  args: {
+    description: v.string(),
+  },
+  handler: async (ctx, args): Promise<
+    | { success: true; questions: AIQuestion[]; usage: unknown }
+    | { success: false; error: string; questions: null }
+  > => {
+    try {
+      // Call the AI question generator
+      const result = await ctx.runAction(api.ai.generateQuestions, {
+        description: args.description,
+      });
+
+      return {
+        success: true,
+        questions: result.questions as AIQuestion[],
+        usage: result.usage,
+      };
+    } catch (error) {
+      console.error("Failed to generate AI questions:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        questions: null,
+      };
+    }
+  },
+});
+
+// Helper mutation to create inquiry with full AI data
+export const createWithAI = mutation({
+  args: {
+    description: v.string(),
+    userType: v.union(
+      v.literal("just-me"),
+      v.literal("team"),
+      v.literal("customers"),
+      v.literal("everyone")
+    ),
+    timeline: v.union(
+      v.literal("exploring"),
+      v.literal("soon"),
+      v.literal("asap")
+    ),
+    email: v.string(),
+    name: v.optional(v.string()),
+    // AI data
+    generatedQuestions: v.array(
+      v.object({
+        id: v.number(),
+        question: v.string(),
+        options: v.array(
+          v.object({
+            key: v.string(),
+            label: v.string(),
+            emoji: v.optional(v.string()),
+          })
+        ),
+      })
+    ),
+    answers: v.string(),
+    prd: v.object({
+      summary: v.string(),
+      userStories: v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          description: v.string(),
+          acceptanceCriteria: v.array(v.string()),
+        })
+      ),
+      functionalRequirements: v.array(
+        v.object({
+          id: v.string(),
+          description: v.string(),
+        })
+      ),
+      nonGoals: v.array(v.string()),
+    }),
+    estimate: v.object({
+      lineItems: v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          hours: v.number(),
+          cost: v.number(),
+          confidence: v.string(),
+        })
+      ),
+      subtotal: v.number(),
+      riskBuffer: v.number(),
+      riskPercent: v.number(),
+      total: v.object({
+        min: v.number(),
+        max: v.number(),
+      }),
+      totalHours: v.number(),
+      confidence: v.string(),
+      notes: v.array(v.string()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    // Also calculate rough estimate as fallback/comparison
+    const { min, max, keywords } = calculateRoughRange(
+      args.description,
+      args.userType,
+      args.timeline
+    );
+
+    const inquiryId = await ctx.db.insert("projectInquiries", {
+      description: args.description,
+      userType: args.userType,
+      timeline: args.timeline,
+      email: args.email,
+      name: args.name,
+      // AI-generated data
+      generatedQuestions: args.generatedQuestions,
+      answers: args.answers,
+      prd: args.prd,
+      lineItems: args.estimate.lineItems,
+      estimateMin: args.estimate.total.min,
+      estimateMax: args.estimate.total.max,
+      estimateSubtotal: args.estimate.subtotal,
+      estimateRiskBuffer: args.estimate.riskBuffer,
+      estimateRiskPercent: args.estimate.riskPercent,
+      estimateTotalHours: args.estimate.totalHours,
+      estimateConfidence: args.estimate.confidence,
+      estimateNotes: args.estimate.notes,
+      // Fallback rough estimate
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: true,
+      status: "new",
+      createdAt: Date.now(),
+    });
+
+    return {
+      inquiryId,
+      estimateMin: args.estimate.total.min,
+      estimateMax: args.estimate.total.max,
+      lineItems: args.estimate.lineItems,
+      prd: args.prd,
+      confidence: args.estimate.confidence,
+      notes: args.estimate.notes,
+    };
+  },
+});
+
+// PRD and Estimate types
+type PRDType = {
+  summary: string;
+  userStories: {
+    id: string;
+    title: string;
+    description: string;
+    acceptanceCriteria: string[];
+  }[];
+  functionalRequirements: { id: string; description: string }[];
+  nonGoals: string[];
+};
+
+type EstimateType = {
+  lineItems: {
+    id: string;
+    title: string;
+    hours: number;
+    cost: number;
+    confidence: string;
+  }[];
+  subtotal: number;
+  riskBuffer: number;
+  riskPercent: number;
+  total: { min: number; max: number };
+  totalHours: number;
+  confidence: string;
+  notes: string[];
+};
+
+// Action that orchestrates the full AI flow: PRD generation + estimation
+export const generatePRDAndEstimate = action({
+  args: {
+    description: v.string(),
+    answers: v.string(),
+    questions: v.array(
+      v.object({
+        id: v.number(),
+        question: v.string(),
+        options: v.array(
+          v.object({
+            key: v.string(),
+            label: v.string(),
+            emoji: v.optional(v.string()),
+          })
+        ),
+      })
+    ),
+    userType: v.string(),
+    timeline: v.string(),
+  },
+  handler: async (ctx, args): Promise<
+    | { success: true; prd: PRDType; estimate: EstimateType; usage: unknown }
+    | { success: false; error: string; prd: null; estimate: null }
+  > => {
+    try {
+      // Step 1: Generate PRD from description + answers
+      const prdResult = await ctx.runAction(api.ai.generatePRD, {
+        description: args.description,
+        answers: args.answers,
+        questions: args.questions,
+      });
+
+      // Step 2: Generate estimate from PRD
+      const estimateResult = await ctx.runAction(api.ai.estimateFromPRD, {
+        prd: prdResult.prd,
+        userType: args.userType,
+        timeline: args.timeline,
+      });
+
+      return {
+        success: true,
+        prd: prdResult.prd as PRDType,
+        estimate: estimateResult.estimate as EstimateType,
+        usage: {
+          prd: prdResult.usage,
+          estimate: estimateResult.usage,
+        },
+      };
+    } catch (error) {
+      console.error("Failed to generate PRD and estimate:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        prd: null,
+        estimate: null,
+      };
+    }
+  },
+});
+
+// Fallback submit (uses keyword-based estimation when AI fails)
+export const submitFallback = mutation({
+  args: {
+    description: v.string(),
+    userType: v.union(
+      v.literal("just-me"),
+      v.literal("team"),
+      v.literal("customers"),
+      v.literal("everyone")
+    ),
+    timeline: v.union(
+      v.literal("exploring"),
+      v.literal("soon"),
+      v.literal("asap")
+    ),
+    email: v.string(),
+    name: v.optional(v.string()),
+    aiError: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Calculate rough pricing based on description
+    const { min, max, keywords } = calculateRoughRange(
+      args.description,
+      args.userType,
+      args.timeline
+    );
+
+    const inquiryId = await ctx.db.insert("projectInquiries", {
+      description: args.description,
+      userType: args.userType,
+      timeline: args.timeline,
+      email: args.email,
+      name: args.name,
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: false,
+      aiError: args.aiError,
+      status: "new",
+      createdAt: Date.now(),
+    });
+
+    return {
+      inquiryId,
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: false,
+    };
   },
 });

@@ -193,10 +193,79 @@ export default defineSchema({
     email: v.string(),
     name: v.optional(v.string()),
 
-    // Generated rough estimate
+    // AI-generated clarifying questions
+    generatedQuestions: v.optional(
+      v.array(
+        v.object({
+          id: v.number(),
+          question: v.string(),
+          options: v.array(
+            v.object({
+              key: v.string(),
+              label: v.string(),
+              emoji: v.optional(v.string()),
+            })
+          ),
+        })
+      )
+    ),
+
+    // User answers to AI questions (format: "1A, 2C, 3B")
+    answers: v.optional(v.string()),
+
+    // AI-generated PRD
+    prd: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+
+    // AI-generated line-item estimate
+    lineItems: v.optional(
+      v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          hours: v.number(),
+          cost: v.number(),
+          confidence: v.string(),
+        })
+      )
+    ),
+
+    // AI-calculated estimate (more accurate than rough)
+    estimateMin: v.optional(v.number()),
+    estimateMax: v.optional(v.number()),
+    estimateSubtotal: v.optional(v.number()),
+    estimateRiskBuffer: v.optional(v.number()),
+    estimateRiskPercent: v.optional(v.number()),
+    estimateTotalHours: v.optional(v.number()),
+    estimateConfidence: v.optional(v.string()),
+    estimateNotes: v.optional(v.array(v.string())),
+
+    // Fallback rough estimate (keyword-based)
     roughMin: v.number(),
     roughMax: v.number(),
     keywords: v.array(v.string()), // Detected keywords for admin review
+
+    // Flag if AI estimation was used vs fallback
+    usedAI: v.optional(v.boolean()),
+    aiError: v.optional(v.string()),
 
     // Admin workflow
     status: v.union(
