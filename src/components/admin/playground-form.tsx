@@ -401,6 +401,108 @@ export function PlaygroundForm({
     setEstimateConfidence("");
   };
 
+  // Re-run with same description and answers
+  const handleRerun = async () => {
+    if (!description || Object.keys(answers).length === 0) {
+      setError("No previous data to re-run");
+      return;
+    }
+
+    // Reset result state but keep description/questions/answers
+    setError(null);
+    setInitialPRD(null);
+    setReviewerGaps([]);
+    setReviewerRecommendations([]);
+    setReviewerQuestions([]);
+    setCurrentReviewQuestionIndex(0);
+    setReviewerAnswers({});
+    setEnhancedPRD(null);
+    setLineItems([]);
+    setEstimateMin(0);
+    setEstimateMax(0);
+    setEstimateConfidence("");
+
+    setStage("generating-prd");
+
+    try {
+      // Create new test record
+      const id = await createTest({ description: description.trim() });
+      setTestId(id);
+      onTestCreated?.(id);
+
+      // Save questions to new test
+      await updateWithQuestions({
+        id,
+        questions,
+        debugInfo: {
+          tokensIn: 0, // Reusing existing questions
+          tokensOut: 0,
+          durationMs: 0,
+        },
+      });
+
+      // Run PRD generation with existing answers
+      const formattedAnswers = formatAnswers(answers);
+      await updateWithAnswers({ id, answers: formattedAnswers });
+
+      const startTime = Date.now();
+      const result = await generatePRDAndEstimate({
+        description,
+        answers: formattedAnswers,
+        questions,
+      });
+      const duration = Date.now() - startTime;
+
+      if (result.stage === "review" && result.initialPRD) {
+        setInitialPRD(result.initialPRD);
+        setReviewerGaps(result.gaps || []);
+        setReviewerRecommendations(result.recommendations || []);
+        setReviewerQuestions(result.reviewerQuestions || []);
+
+        await updateWithInitialPRD({
+          id,
+          initialPRD: result.initialPRD,
+          debugInfo: {
+            tokensIn: 1500,
+            tokensOut: 2000,
+            durationMs: duration,
+          },
+        });
+
+        if (result.reviewerQuestions && result.reviewerQuestions.length > 0) {
+          await updateWithReview({
+            id,
+            gaps: result.gaps || [],
+            recommendations: result.recommendations || [],
+            questions: result.reviewerQuestions,
+            debugInfo: {
+              tokensIn: 1000,
+              tokensOut: 800,
+              durationMs: duration / 2,
+            },
+          });
+        }
+
+        setStage("review");
+      } else if (result.stage === "complete" && result.prd && result.estimate) {
+        await completeEstimate({
+          prd: result.prd,
+          estimate: result.estimate,
+          enhancedPRD: result.enhancedPRD ?? undefined,
+        }, duration);
+      } else {
+        throw new Error("Unexpected result from PRD generation");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      setError(message);
+      setStage("error");
+      if (testId) {
+        await markError({ id: testId, error: message });
+      }
+    }
+  };
+
   // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -764,6 +866,12 @@ export function PlaygroundForm({
         {/* Actions */}
         <div className="flex gap-3">
           <button
+            onClick={handleRerun}
+            className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+          >
+            Re-run
+          </button>
+          <button
             onClick={handleReset}
             className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
           >
@@ -781,12 +889,20 @@ export function PlaygroundForm({
           <div className="text-sm font-medium text-red-400">Error</div>
           <p className="text-sm text-red-300 mt-1">{error}</p>
         </div>
-        <button
-          onClick={handleReset}
-          className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
-        >
-          Try Again
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleRerun}
+            className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+          >
+            Re-run
+          </button>
+          <button
+            onClick={handleReset}
+            className="flex-1 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
