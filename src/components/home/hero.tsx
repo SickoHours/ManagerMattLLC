@@ -34,12 +34,12 @@ export function Hero() {
           {/* CTA */}
           <FadeIn delay={300} direction="up">
             <div className="mt-12">
-              <Link href="/estimate">
+              <Link href="/contact">
                 <Button
                   size="lg"
                   className="h-14 px-8 text-base font-medium shadow-sm hover:shadow-md transition-all"
                 >
-                  Get Your Estimate
+                  Get In Touch
                   <svg
                     className="ml-2 w-5 h-5"
                     fill="none"
@@ -62,7 +62,7 @@ export function Hero() {
           {/* Subtle trust indicator */}
           <FadeIn delay={400} direction="up">
             <p className="mt-8 text-label text-muted-custom">
-              Free estimate in under 5 minutes
+              AI-powered estimates coming soon
             </p>
           </FadeIn>
         </div>

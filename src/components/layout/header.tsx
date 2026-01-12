@@ -58,9 +58,9 @@ export function Header() {
 
           {/* CTA Button */}
           <div className="flex items-center gap-4">
-            <Link href="/estimate" className="hidden sm:block">
+            <Link href="/contact" className="hidden sm:block">
               <Button className="h-10 px-5 text-sm font-medium">
-                Get Estimate
+                Contact
               </Button>
             </Link>
 
@@ -113,11 +113,11 @@ export function Header() {
                 </Link>
               ))}
               <Link
-                href="/estimate"
+                href="/contact"
                 className="mt-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <Button className="w-full h-11">Get Estimate</Button>
+                <Button className="w-full h-11">Contact</Button>
               </Link>
             </nav>
           </div>
