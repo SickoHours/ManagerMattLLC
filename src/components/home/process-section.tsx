@@ -1,35 +1,35 @@
 "use client";
 
-const steps = [
+const clientSteps = [
   {
     number: "01",
-    title: "I understand your problem",
-    description: "human brain, still required",
+    title: "Discovery",
+    description: "We understand your vision, goals, and constraints.",
+    deliverables: ["Project brief", "Technical requirements", "Timeline"],
   },
   {
     number: "02",
-    title: "I architect the solution",
-    description: "fundamentals matter, who knew",
+    title: "Design",
+    description: "Wireframes and mockups before any code is written.",
+    deliverables: ["Wireframes", "Visual designs", "Your approval"],
   },
   {
     number: "03",
-    title: "Claude writes the implementation",
-    description: "fast, tireless, doesn't need coffee",
+    title: "Build",
+    description: "Development in focused sprints with real-time visibility.",
+    deliverables: ["Staging environment", "Weekly updates", "Working features"],
   },
   {
     number: "04",
-    title: "I review every line",
-    description: "yes, every line",
+    title: "Review",
+    description: "QA testing, bug fixes, and polish before launch.",
+    deliverables: ["QA results", "Performance tuning", "Final sign-off"],
   },
   {
     number: "05",
-    title: "I test it",
-    description: "revolutionary concept",
-  },
-  {
-    number: "06",
-    title: "I ship it",
-    description: "the part that matters",
+    title: "Ship",
+    description: "Production deployment with documentation and support.",
+    deliverables: ["Live deployment", "Documentation", "30-day support"],
   },
 ];
 
@@ -38,94 +38,66 @@ export function ProcessSection() {
     <section className="bg-vibe-dark py-24 md:py-32">
       <div className="vibe-container px-6">
         {/* Header */}
-        <div className="max-w-4xl mx-auto mb-16">
+        <div className="max-w-4xl mx-auto text-center mb-16">
           <div className="aura-reveal">
             <h2 className="text-vibe-display text-white text-3xl md:text-5xl">
-              How I Actually Work
+              How We Work Together
             </h2>
           </div>
           <div className="aura-reveal aura-reveal-delay-1 mt-4">
-            <p className="text-zinc-500 text-lg italic">
-              (A.K.A. The Part That Makes Traditional Devs Uncomfortable)
+            <p className="text-zinc-400 text-lg">
+              A clear, predictable process from idea to launch.
             </p>
           </div>
         </div>
 
-        {/* Two column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 max-w-6xl mx-auto">
-          {/* Left: Intro + Steps */}
-          <div>
-            <div className="aura-reveal aura-reveal-delay-2">
-              <p className="text-zinc-300 text-lg leading-relaxed mb-8">
-                I don&apos;t mass-produce spaghetti code and pray.
-              </p>
-              <p className="text-zinc-400 text-lg leading-relaxed mb-4">
-                I have a workflow. A real one.
-                <br />
-                The same one a senior dev team would use.
-                <br />
-                Except my team is... artificial.
-              </p>
-              <p className="text-zinc-400 text-base mt-8 mb-6">
-                Here&apos;s what actually happens:
-              </p>
-            </div>
+        {/* Timeline */}
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            {/* Vertical line (desktop) */}
+            <div className="hidden md:block absolute left-[23px] top-0 bottom-0 w-px bg-gradient-to-b from-purple-500/50 via-purple-500/20 to-transparent" />
 
             {/* Steps */}
-            <div className="space-y-4">
-              {steps.map((step, index) => (
+            <div className="space-y-8">
+              {clientSteps.map((step, index) => (
                 <div
                   key={step.number}
-                  className={`aura-reveal aura-reveal-delay-${index + 3} flex items-start gap-4`}
+                  className={`aura-reveal aura-reveal-delay-${index + 2} relative`}
                 >
-                  <span className="text-purple-400 font-mono text-sm mt-1">
-                    {step.number}
-                  </span>
-                  <div>
-                    <span className="text-white text-base font-medium">
-                      {step.title}
-                    </span>
-                    <span className="text-zinc-500 text-base ml-2">
-                      ({step.description})
-                    </span>
+                  <div className="flex gap-6">
+                    {/* Number circle */}
+                    <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-purple-500/10 border border-purple-500/30 text-purple-400 font-mono text-sm z-10">
+                      {step.number}
+                    </div>
+
+                    {/* Content card */}
+                    <div className="flex-1 vibe-card p-6">
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div>
+                          <h3 className="text-white text-xl font-medium mb-2">
+                            {step.title}
+                          </h3>
+                          <p className="text-zinc-400 text-base">
+                            {step.description}
+                          </p>
+                        </div>
+
+                        {/* Deliverables */}
+                        <div className="flex flex-wrap gap-2 md:flex-col md:items-end">
+                          {step.deliverables.map((item, i) => (
+                            <span
+                              key={i}
+                              className="text-xs text-zinc-500 bg-white/5 px-2 py-1 border border-white/10"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Right: The Thesis */}
-          <div className="aura-reveal aura-reveal-delay-4 flex flex-col justify-center">
-            {/* Results summary */}
-            <div className="mb-8">
-              <p className="text-zinc-300 text-lg leading-relaxed">
-                The output?{" "}
-                <span className="text-white font-medium">
-                  Production-grade software.
-                </span>
-              </p>
-              <p className="text-zinc-300 text-lg leading-relaxed mt-2">
-                The process?{" "}
-                <span className="text-purple-400 font-medium">Vibe-coded.</span>
-              </p>
-              <p className="text-zinc-300 text-lg leading-relaxed mt-2">
-                The results?{" "}
-                <span className="text-white font-medium">
-                  Indistinguishable from &ldquo;real&rdquo; development.
-                </span>
-              </p>
-            </div>
-
-            {/* The big quote */}
-            <div className="quote-highlight">
-              <p className="text-zinc-400 text-base mb-4">
-                Because here&apos;s the secret nobody wants to admit:
-              </p>
-              <p className="text-white text-xl md:text-2xl font-medium leading-relaxed">
-                The client doesn&apos;t care HOW it was built.
-                <br />
-                They care that it WORKS.
-              </p>
             </div>
           </div>
         </div>
