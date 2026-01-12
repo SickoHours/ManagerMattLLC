@@ -10,10 +10,12 @@ const ADMIN_EMAILS = [
 
 export default clerkMiddleware(async (auth, req) => {
   if (isAdminRoute(req)) {
-    const session = await auth.protect();
+    // Protect the route (requires sign-in)
+    await auth.protect();
 
-    // Check if user email is in admin list
-    const userEmail = session.sessionClaims?.email as string | undefined;
+    // Get session claims to check email
+    const { sessionClaims } = await auth();
+    const userEmail = sessionClaims?.email as string | undefined;
 
     if (!userEmail || !ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
       // Redirect non-admins to home page
