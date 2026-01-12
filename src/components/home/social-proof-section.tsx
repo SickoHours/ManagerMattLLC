@@ -90,11 +90,11 @@ const stats = [
     sourceUrl: "https://survey.stackoverflow.co/2025/",
   },
   {
-    number: 51,
+    number: 82,
     suffix: "%",
-    label: "use AI tools daily in their workflow",
-    source: "Stack Overflow 2025",
-    sourceUrl: "https://survey.stackoverflow.co/2025/",
+    label: "of companies using agentic AI for coding",
+    source: "Business Insider",
+    sourceUrl: "https://www.businessinsider.com/ai-coding-agents-adoption-top-tools-2025-8",
   },
   {
     number: 25,
@@ -105,11 +105,11 @@ const stats = [
       "https://techcrunch.com/2025/03/06/a-quarter-of-startups-in-ycs-current-cohort-have-codebases-that-are-almost-entirely-ai-generated/",
   },
   {
-    number: 80.9,
+    number: 76,
     suffix: "%",
-    label: "Claude Opus 4.5 on SWE-bench",
-    source: "Anthropic",
-    sourceUrl: "https://www.anthropic.com/news/claude-opus-4-5",
+    label: "of companies doing AI code reviews",
+    source: "Business Insider",
+    sourceUrl: "https://www.businessinsider.com/ai-coding-agents-adoption-top-tools-2025-8",
   },
 ];
 

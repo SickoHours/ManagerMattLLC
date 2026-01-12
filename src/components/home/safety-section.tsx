@@ -244,6 +244,32 @@ export function SafetySection() {
             </cite>
           </blockquote>
         </div>
+
+        {/* Addy Osmani Quote - Trust Builder (realistic expectations) */}
+        <div
+          className={`max-w-2xl mx-auto mt-8 transition-all duration-700 delay-500 ${
+            allOnline ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <blockquote className="relative text-center">
+            <p className="text-zinc-400 text-sm md:text-base leading-relaxed px-8">
+              Research summaries in 2025 point to ~20–30% productivity boosts on
+              average (not &ldquo;10x&rdquo;), with bigger wins in greenfield work.
+            </p>
+            <cite className="block text-zinc-500 text-xs mt-2 not-italic">
+              —{" "}
+              <a
+                href="https://addyo.substack.com/p/the-reality-of-ai-assisted-software"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-green-400 transition-colors underline underline-offset-2"
+              >
+                Addy Osmani
+              </a>
+              , Engineering Lead at Google
+            </cite>
+          </blockquote>
+        </div>
       </div>
     </section>
   );
