@@ -223,6 +223,27 @@ export function SafetySection() {
             </span>
           </div>
         </div>
+
+        {/* Werner Vogels Quote - Verification Debt */}
+        <div
+          className={`max-w-2xl mx-auto mt-12 transition-all duration-700 delay-300 ${
+            allOnline ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <blockquote className="relative text-center">
+            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-4xl text-green-500/20 font-serif">
+              &ldquo;
+            </span>
+            <p className="text-zinc-300 text-base md:text-lg italic leading-relaxed px-8">
+              I no longer have to look at the code to say, &lsquo;This doesn&apos;t
+              feel good.&rsquo; I still verify—&lsquo;verification debt&rsquo;
+              exists—but the instinct remains the same.
+            </p>
+            <cite className="block text-zinc-500 text-sm mt-3 not-italic">
+              — Werner Vogels, CTO of Amazon
+            </cite>
+          </blockquote>
+        </div>
       </div>
     </section>
   );

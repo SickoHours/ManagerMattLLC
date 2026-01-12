@@ -5,9 +5,18 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const evidenceBullets = [
-  "25% of Y Combinator startups are 95% AI-coded",
-  "Claude Opus 4.5 just hit 80.9% on real-world coding benchmarks",
-  "Solo devs are out-shipping VC-funded teams",
+  {
+    quote: "The barrier to getting your first draft is down to zero.",
+    attribution: "David Fowler, Microsoft",
+  },
+  {
+    quote: "I'm mass-producing features and bug fixes... building entire new features in minutes.",
+    attribution: "Zach Lloyd, CEO of Warp",
+  },
+  {
+    quote: "The vast majority of code in the future will be AI-generated.",
+    attribution: "Zach Lloyd",
+  },
 ];
 
 /**
@@ -102,9 +111,9 @@ export function CTASection() {
             But consider this:
           </p>
 
-          {/* Evidence bullets */}
+          {/* Evidence bullets - Authority Quotes */}
           <div
-            className={`mt-6 space-y-3 max-w-xl mx-auto transition-all duration-700 ${
+            className={`mt-6 space-y-4 max-w-2xl mx-auto transition-all duration-700 ${
               showBullets ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -116,10 +125,17 @@ export function CTASection() {
                   transitionDelay: `${index * 100}ms`,
                 }}
               >
-                <span className="text-purple-400 mt-1 transition-transform group-hover:translate-x-1">
+                <span className="text-purple-400 mt-1 flex-shrink-0 transition-transform group-hover:translate-x-1">
                   →
                 </span>
-                <p className="text-zinc-300 text-base text-left">{bullet}</p>
+                <div className="text-left">
+                  <p className="text-zinc-300 text-base italic">
+                    &ldquo;{bullet.quote}&rdquo;
+                  </p>
+                  <p className="text-zinc-500 text-sm mt-1">
+                    — {bullet.attribution}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
