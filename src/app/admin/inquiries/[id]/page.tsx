@@ -79,6 +79,140 @@ function StatusUpdater({
   );
 }
 
+function StageProgress({ stage }: { stage?: string }) {
+  const stages = [
+    { key: "questions", label: "Questions" },
+    { key: "initial-prd", label: "Initial PRD" },
+    { key: "review", label: "Review" },
+    { key: "enhanced", label: "Enhanced" },
+    { key: "estimated", label: "Estimated" },
+  ];
+
+  const currentIndex = stages.findIndex((s) => s.key === stage);
+
+  return (
+    <div className="flex items-center gap-2 mb-6 flex-wrap">
+      {stages.map((s, i) => (
+        <div key={s.key} className="flex items-center">
+          <div
+            className={`px-3 py-1 text-xs rounded-full ${
+              i <= currentIndex
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                : "bg-zinc-800 text-zinc-500 border border-zinc-700"
+            }`}
+          >
+            {s.label}
+          </div>
+          {i < stages.length - 1 && (
+            <div
+              className={`w-4 h-0.5 mx-1 ${
+                i < currentIndex ? "bg-blue-500/50" : "bg-zinc-700"
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ReviewerFindings({
+  gaps,
+  recommendations,
+  questions,
+  answers,
+}: {
+  gaps?: string[];
+  recommendations?: string[];
+  questions?: Array<{
+    question: string;
+    header: string;
+    options: Array<{ label: string; description: string }>;
+  }>;
+  answers?: string;
+}) {
+  if (!gaps?.length && !recommendations?.length && !questions?.length) {
+    return null;
+  }
+
+  const reviewStatus =
+    answers === "SKIPPED"
+      ? { label: "Skipped", color: "text-amber-400 bg-amber-500/10" }
+      : answers
+        ? { label: "Completed", color: "text-green-400 bg-green-500/10" }
+        : { label: "Pending", color: "text-zinc-400 bg-zinc-500/10" };
+
+  return (
+    <SectionCard title="AI Review Findings">
+      <div className="space-y-4">
+        {/* Review Status Badge */}
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 text-xs rounded ${reviewStatus.color}`}>
+            Review: {reviewStatus.label}
+          </span>
+        </div>
+
+        {/* Gaps */}
+        {gaps && gaps.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-amber-400 mb-2">
+              Gaps Identified
+            </h4>
+            <ul className="space-y-1">
+              {gaps.map((gap, i) => (
+                <li key={i} className="text-sm text-zinc-300 flex gap-2">
+                  <span className="text-amber-500">•</span> {gap}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Recommendations */}
+        {recommendations && recommendations.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-blue-400 mb-2">
+              Recommendations
+            </h4>
+            <ul className="space-y-1">
+              {recommendations.map((rec, i) => (
+                <li key={i} className="text-sm text-zinc-300 flex gap-2">
+                  <span className="text-blue-500">•</span> {rec}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Follow-up Questions & Answers */}
+        {questions && questions.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-zinc-400 mb-2">
+              Follow-up Questions
+            </h4>
+            <div className="space-y-3">
+              {questions.map((q, i) => (
+                <div key={i} className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="text-sm text-zinc-300 mb-1">{q.question}</div>
+                  <div className="text-sm text-blue-400">
+                    {answers === "SKIPPED"
+                      ? "—"
+                      : answers
+                          ?.split(",")
+                          .find((a) => a.trim().startsWith(q.header + "="))
+                          ?.split("=")[1]
+                          ?.trim() || "—"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </SectionCard>
+  );
+}
+
 function PRDViewer({
   prd,
 }: {
@@ -295,6 +429,9 @@ export default function InquiryDetailPage() {
         />
       </div>
 
+      {/* Stage Progress - shows V2 inquiry flow progression */}
+      {inquiry.stage && <StageProgress stage={inquiry.stage} />}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
@@ -326,10 +463,51 @@ export default function InquiryDetailPage() {
             </SectionCard>
           )}
 
-          {/* PRD */}
+          {/* AI Review Findings - shows gaps, recommendations, and follow-up Q&A */}
+          <ReviewerFindings
+            gaps={inquiry.reviewerGaps}
+            recommendations={inquiry.reviewerRecommendations}
+            questions={inquiry.reviewerQuestions}
+            answers={inquiry.reviewerAnswers}
+          />
+
+          {/* PRD - with comparison when both initial and enhanced exist */}
           {prd && (
             <SectionCard title="Product Requirements">
-              <PRDViewer prd={prd} />
+              {inquiry.initialPRD && inquiry.enhancedPRD ? (
+                <div className="space-y-4">
+                  {/* PRD Evolution Badge */}
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 text-xs bg-zinc-700 text-zinc-300 rounded">
+                      Initial
+                    </span>
+                    <svg className="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded">
+                      Enhanced (Final)
+                    </span>
+                  </div>
+
+                  {/* Enhanced PRD (primary view) */}
+                  <PRDViewer prd={inquiry.enhancedPRD} />
+
+                  {/* Collapsible Initial PRD */}
+                  <details className="group mt-4">
+                    <summary className="text-sm text-zinc-500 cursor-pointer hover:text-zinc-300 flex items-center gap-2">
+                      <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      View Initial PRD (before AI review enhancements)
+                    </summary>
+                    <div className="mt-3 pt-3 border-t border-zinc-700">
+                      <PRDViewer prd={inquiry.initialPRD} />
+                    </div>
+                  </details>
+                </div>
+              ) : (
+                <PRDViewer prd={prd} />
+              )}
             </SectionCard>
           )}
 
@@ -471,6 +649,26 @@ export default function InquiryDetailPage() {
               <div className="flex justify-between">
                 <span className="text-zinc-500">Stage</span>
                 <span className="text-white">{inquiry.stage || "—"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">AI Review</span>
+                <span
+                  className={
+                    inquiry.reviewerAnswers === "SKIPPED"
+                      ? "text-amber-400"
+                      : inquiry.reviewerAnswers
+                        ? "text-green-400"
+                        : "text-zinc-400"
+                  }
+                >
+                  {inquiry.reviewerAnswers === "SKIPPED"
+                    ? "Skipped"
+                    : inquiry.reviewerAnswers
+                      ? "Completed"
+                      : inquiry.reviewerGaps?.length
+                        ? "Pending"
+                        : "—"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-zinc-500">AI Used</span>
