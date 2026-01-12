@@ -1,11 +1,10 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense } from "react";
 
 type InquiryStatus = "new" | "reviewed" | "quoted" | "converted";
 
@@ -94,7 +93,7 @@ function FilterTabs({
   );
 }
 
-export default function InquiriesPage() {
+function InquiriesContent() {
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get("status") as InquiryStatus | null;
 
@@ -244,5 +243,27 @@ export default function InquiriesPage() {
         </table>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-8 w-48 bg-zinc-800 rounded mb-6" />
+      <div className="h-12 bg-zinc-800 rounded mb-4" />
+      <div className="space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-16 bg-zinc-800 rounded" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function InquiriesPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <InquiriesContent />
+    </Suspense>
   );
 }
