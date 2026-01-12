@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Mail, Clock, MessageSquare, Kanban } from "lucide-react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { LucideIcon } from "lucide-react";
 
 const expectations = [
@@ -34,102 +32,71 @@ const expectations = [
 ];
 
 /**
- * Notification Card Component
- * Slides in from alternating sides, lands with bounce, shows notification dot + ripple
+ * Notification Card - slides in from alternating sides
  */
 function NotificationCard({
   icon: Icon,
   title,
   description,
   index,
-  isActive,
 }: {
   icon: LucideIcon;
   title: string;
   description: string;
   index: number;
-  isActive: boolean;
 }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const [showDot, setShowDot] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const dotRef = useRef<HTMLSpanElement>(null);
-  const rippleRef = useRef<HTMLSpanElement>(null);
-  const [showNotification, setShowNotification] = useState(false);
-  const [showRipple, setShowRipple] = useState(false);
 
   // Alternate direction: even = left, odd = right
-  const direction = index % 2 === 0 ? -1 : 1;
-  const delay = index * 0.2;
+  const fromLeft = index % 2 === 0;
+  const delay = index * 150;
 
   useEffect(() => {
-    if (!isActive || !cardRef.current) return;
-
-    const card = cardRef.current;
-
-    // Set initial state
-    gsap.set(card, {
-      opacity: 0,
-      x: direction * 80,
-      scale: 0.95,
-    });
-
-    // Slide in with bounce
-    gsap.to(card, {
-      opacity: 1,
-      x: 0,
-      scale: 1,
-      duration: 0.6,
-      delay: delay,
-      ease: "back.out(1.7)",
-      onComplete: () => {
-        // Show notification dot after card lands
-        setShowNotification(true);
-
-        // Trigger ripple
-        setTimeout(() => {
-          setShowRipple(true);
-          // Reset ripple after animation
-          setTimeout(() => setShowRipple(false), 600);
-        }, 100);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isVisible) {
+          setTimeout(() => {
+            setIsVisible(true);
+            // Show notification dot after card appears
+            setTimeout(() => setShowDot(true), 300);
+          }, delay);
+        }
       },
-    });
-  }, [isActive, direction, delay]);
+      { threshold: 0.2 }
+    );
+
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, [delay, isVisible]);
 
   return (
     <div
       ref={cardRef}
-      className="vibe-card-enhanced p-6 h-full hover-glow relative overflow-visible"
-      style={{ opacity: 0 }}
+      className={`bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 relative transition-all duration-500 ease-out ${
+        isVisible
+          ? "opacity-100 translate-x-0"
+          : `opacity-0 ${fromLeft ? "-translate-x-8" : "translate-x-8"}`
+      } hover:border-purple-500/30`}
     >
-      {/* Notification Dot + Ripple */}
-      <div className="absolute top-3 right-3 z-10">
-        {showNotification && (
-          <>
-            {/* Ripple effect */}
-            {showRipple && (
-              <span
-                ref={rippleRef}
-                className="absolute inset-0 rounded-full bg-purple-400/40 notification-ripple"
-              />
-            )}
-            {/* Notification dot */}
-            <span
-              ref={dotRef}
-              className="relative flex h-3 w-3"
-            >
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
-            </span>
-          </>
-        )}
-      </div>
+      {/* Notification Dot */}
+      {showDot && (
+        <div className="absolute top-3 right-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+          </span>
+        </div>
+      )}
 
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-500/10 text-purple-400 rounded">
           <Icon size={20} strokeWidth={1.5} />
         </div>
         <div>
-          <h3 className="text-white font-medium mb-1">{title}</h3>
-          <p className="text-zinc-500 text-sm leading-relaxed">{description}</p>
+          <h3 className="text-white font-semibold mb-1">{title}</h3>
+          <p className="text-zinc-400 text-sm leading-relaxed">{description}</p>
         </div>
       </div>
     </div>
@@ -137,79 +104,38 @@ function NotificationCard({
 }
 
 /**
- * Communication Section - "The Signal"
- *
- * Notifications arriving - each card slides in like a message bubble
- * from alternating sides, creating a "conversation" rhythm.
+ * Communication Section - The Signal
  */
 export function CommunicationSection() {
-  const sectionRef = useRef<HTMLElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
-  const [isActive, setIsActive] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setHeaderVisible(true);
+      },
+      { threshold: 0.3 }
+    );
 
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const section = sectionRef.current;
-
-    // Trigger animation when section comes into view
-    ScrollTrigger.create({
-      trigger: section,
-      start: "top 60%",
-      once: true,
-      onEnter: () => setIsActive(true),
-    });
-
-    // Animate header
-    if (headerRef.current) {
-      gsap.fromTo(
-        headerRef.current,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 70%",
-            once: true,
-          },
-        }
-      );
-    }
-
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.vars.trigger === section) {
-          t.kill();
-        }
-      });
-    };
+    if (headerRef.current) observer.observe(headerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden"
-    >
-      {/* Subtle ambient glow */}
-      <div className="glow-purple absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20" />
+    <section className="bg-zinc-950 py-24 md:py-32 relative overflow-hidden">
+      {/* Subtle glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="vibe-container px-6 relative">
+      <div className="max-w-5xl mx-auto px-6 relative">
         {/* Header */}
-        <div ref={headerRef} className="max-w-4xl mx-auto text-center mb-16 opacity-0">
-          <h2 className="text-display-premium text-white text-3xl md:text-5xl">
+        <div
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-700 ${
+            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-tight">
             What to Expect
           </h2>
           <p className="text-zinc-400 text-lg mt-4">
@@ -217,7 +143,7 @@ export function CommunicationSection() {
           </p>
         </div>
 
-        {/* Expectations Grid - 2x2 for desktop */}
+        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           {expectations.map((item, index) => (
             <NotificationCard
@@ -225,8 +151,7 @@ export function CommunicationSection() {
               icon={item.icon}
               title={item.title}
               description={item.description}
-              index={isMobile ? 0 : index} // On mobile, all slide from same direction
-              isActive={isActive}
+              index={index}
             />
           ))}
         </div>

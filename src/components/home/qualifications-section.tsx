@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { X, Check } from "lucide-react";
 
 const dontHave = [
   "Computer Science Degree",
@@ -20,215 +19,91 @@ const doHave = [
 ];
 
 /**
- * Rejection Item Component
- * Types in text, then slashes through with strikethrough
+ * Rejection Item - Shows text then strikes through
  */
-function RejectionItem({
-  text,
-  delay,
-  isActive,
-}: {
-  text: string;
-  delay: number;
-  isActive: boolean;
-}) {
-  const textRef = useRef<HTMLSpanElement>(null);
-  const strikeRef = useRef<SVGLineElement>(null);
-  const containerRef = useRef<HTMLLIElement>(null);
-  const [displayText, setDisplayText] = useState("");
+function RejectionItem({ text, delay }: { text: string; delay: number }) {
+  const [isVisible, setIsVisible] = useState(false);
   const [isStruck, setIsStruck] = useState(false);
+  const itemRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
-    if (!isActive || !textRef.current || !strikeRef.current || !containerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isVisible) {
+          setTimeout(() => {
+            setIsVisible(true);
+            // Strike through after text appears
+            setTimeout(() => setIsStruck(true), 800);
+          }, delay);
+        }
+      },
+      { threshold: 0.3 }
+    );
 
-    // Reset state
-    setDisplayText("");
-    setIsStruck(false);
-    gsap.set(strikeRef.current, { strokeDashoffset: 300 });
-    gsap.set(containerRef.current, { opacity: 1 });
-
-    // Typewriter effect
-    const typeDelay = delay * 1000;
-    let charIndex = 0;
-
-    const typeInterval = setInterval(() => {
-      if (charIndex <= text.length) {
-        setDisplayText(text.slice(0, charIndex));
-        charIndex++;
-      } else {
-        clearInterval(typeInterval);
-
-        // Pause for comedic timing, then slash
-        setTimeout(() => {
-          // Draw strikethrough
-          gsap.to(strikeRef.current, {
-            strokeDashoffset: 0,
-            duration: 0.3,
-            ease: "power2.out",
-            onComplete: () => {
-              setIsStruck(true);
-              // Shake on impact
-              gsap.fromTo(
-                containerRef.current,
-                { x: -4 },
-                {
-                  x: 0,
-                  duration: 0.4,
-                  ease: "elastic.out(1, 0.3)",
-                }
-              );
-              // Dim the text
-              gsap.to(containerRef.current, {
-                opacity: 0.4,
-                duration: 0.3,
-              });
-            },
-          });
-        }, 400); // Pause before slash
-      }
-    }, 35); // Typing speed
-
-    const totalDelay = setTimeout(() => {}, typeDelay);
-
-    return () => {
-      clearInterval(typeInterval);
-      clearTimeout(totalDelay);
-    };
-  }, [isActive, text, delay]);
+    if (itemRef.current) observer.observe(itemRef.current);
+    return () => observer.disconnect();
+  }, [delay, isVisible]);
 
   return (
-    <li ref={containerRef} className="flex items-start gap-3 relative">
-      <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-red-500/10 rounded">
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-red-400">
-          <line
-            x1="2"
-            y1="2"
-            x2="12"
-            y2="12"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <line
-            x1="12"
-            y1="2"
-            x2="2"
-            y2="12"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
+    <li
+      ref={itemRef}
+      className={`flex items-start gap-3 transition-all duration-500 ${
+        isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
+      } ${isStruck ? "opacity-50" : ""}`}
+    >
+      <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-red-500/10 rounded text-red-400">
+        <X size={14} strokeWidth={2.5} />
       </span>
       <span className="relative">
-        <span
-          ref={textRef}
-          className={`text-zinc-400 text-base transition-colors duration-300 ${
-            isStruck ? "text-zinc-600" : ""
-          }`}
-        >
-          {displayText}
-          <span className="animate-pulse">|</span>
+        <span className={`text-zinc-400 text-base ${isStruck ? "text-zinc-600" : ""}`}>
+          {text}
         </span>
-        {/* Strikethrough SVG */}
-        <svg
-          className="absolute left-0 top-1/2 w-full h-[3px] -translate-y-1/2 overflow-visible pointer-events-none"
-          style={{ width: `${text.length * 8}px` }}
-        >
-          <line
-            ref={strikeRef}
-            x1="0"
-            y1="1.5"
-            x2="100%"
-            y2="1.5"
-            stroke="#ef4444"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray="300"
-            strokeDashoffset="300"
-          />
-        </svg>
+        {/* Strikethrough line */}
+        <span
+          className={`absolute left-0 top-1/2 h-0.5 bg-red-500 transition-all duration-300 ${
+            isStruck ? "w-full" : "w-0"
+          }`}
+          style={{ transform: "translateY(-50%)" }}
+        />
       </span>
     </li>
   );
 }
 
 /**
- * Approval Item Component
- * Slides in with spring physics, checkmark draws itself
+ * Approval Item - Slides in with checkmark
  */
-function ApprovalItem({
-  text,
-  delay,
-  isActive,
-}: {
-  text: string;
-  delay: number;
-  isActive: boolean;
-}) {
-  const containerRef = useRef<HTMLLIElement>(null);
-  const checkRef = useRef<SVGPathElement>(null);
-  const glowRef = useRef<HTMLSpanElement>(null);
+function ApprovalItem({ text, delay }: { text: string; delay: number }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const itemRef = useRef<HTMLLIElement>(null);
 
   useEffect(() => {
-    if (!isActive || !containerRef.current || !checkRef.current) return;
-
-    // Set initial state
-    gsap.set(containerRef.current, { opacity: 0, x: 60 });
-    gsap.set(checkRef.current, { strokeDashoffset: 20 });
-
-    // Animate in with spring physics
-    gsap.to(containerRef.current, {
-      opacity: 1,
-      x: 0,
-      duration: 0.6,
-      delay: delay,
-      ease: "back.out(1.7)",
-      onComplete: () => {
-        // Draw checkmark
-        gsap.to(checkRef.current, {
-          strokeDashoffset: 0,
-          duration: 0.3,
-          ease: "power2.out",
-          onComplete: () => {
-            // Green glow pulse
-            if (glowRef.current) {
-              gsap.fromTo(
-                glowRef.current,
-                { boxShadow: "0 0 0px rgba(34, 197, 94, 0)" },
-                {
-                  boxShadow: "0 0 20px rgba(34, 197, 94, 0.5)",
-                  duration: 0.3,
-                  yoyo: true,
-                  repeat: 1,
-                }
-              );
-            }
-          },
-        });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isVisible) {
+          setTimeout(() => setIsVisible(true), delay);
+        }
       },
-    });
-  }, [isActive, delay]);
+      { threshold: 0.3 }
+    );
+
+    if (itemRef.current) observer.observe(itemRef.current);
+    return () => observer.disconnect();
+  }, [delay, isVisible]);
 
   return (
-    <li ref={containerRef} className="flex items-start gap-3 opacity-0">
+    <li
+      ref={itemRef}
+      className={`flex items-start gap-3 transition-all duration-500 ease-out ${
+        isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
+      }`}
+    >
       <span
-        ref={glowRef}
-        className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-green-500/10 rounded transition-shadow"
+        className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-all duration-300 ${
+          isVisible ? "bg-green-500/20 text-green-400" : "bg-zinc-700/30 text-zinc-500"
+        }`}
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" className="text-green-400">
-          <path
-            ref={checkRef}
-            d="M2 7.5L5.5 11L12 3"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="20"
-            strokeDashoffset="20"
-          />
-        </svg>
+        <Check size={14} strokeWidth={2.5} />
       </span>
       <span className="text-zinc-300 text-base">{text}</span>
     </li>
@@ -236,166 +111,78 @@ function ApprovalItem({
 }
 
 /**
- * Qualifications Section - "The Audit"
- *
- * A resume being reviewed - items get rejected (crossed out) or approved (checkmark draws).
- * Left column: Harsh rejection sequence with typing + strikethrough
- * Right column: Satisfying approval with spring physics + checkmark draw
+ * Qualifications Section - Clean, reliable animations
  */
 export function QualificationsSection() {
-  const sectionRef = useRef<HTMLElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
-  const bottomQuoteRef = useRef<HTMLDivElement>(null);
-  const [isActive, setIsActive] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setHeaderVisible(true);
+      },
+      { threshold: 0.3 }
+    );
+
+    if (headerRef.current) observer.observe(headerRef.current);
+    return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (!sectionRef.current) return;
-
-    gsap.registerPlugin(ScrollTrigger);
-
-    const section = sectionRef.current;
-
-    // Trigger animation when section comes into view
-    ScrollTrigger.create({
-      trigger: section,
-      start: "top 60%",
-      once: true,
-      onEnter: () => setIsActive(true),
-    });
-
-    // Animate header
-    if (headerRef.current) {
-      gsap.fromTo(
-        headerRef.current,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 70%",
-            once: true,
-          },
-        }
-      );
-    }
-
-    // Animate bottom quote after main content
-    if (bottomQuoteRef.current) {
-      gsap.fromTo(
-        bottomQuoteRef.current,
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: bottomQuoteRef.current,
-            start: "top 80%",
-            once: true,
-          },
-        }
-      );
-    }
-
-    return () => {
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.vars.trigger === section || t.vars.trigger === bottomQuoteRef.current) {
-          t.kill();
-        }
-      });
-    };
-  }, []);
-
-  // Calculate delays - rejection items type sequentially, approval items stagger
-  const getRejectDelay = (index: number) => {
-    // Each rejection item needs time to type + slash
-    // ~35ms per char + 400ms pause + 700ms animation = ~2s per item
-    return index * 2.2;
-  };
-
-  const getApprovalDelay = (index: number) => {
-    // Start after first rejection starts, stagger every 0.3s
-    return 0.8 + index * 0.25;
-  };
 
   return (
-    <section
-      ref={sectionRef}
-      className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden"
-    >
-      {/* Ambient glow */}
-      <div className="glow-purple-sm absolute bottom-0 left-1/2 -translate-x-1/2 opacity-30" />
+    <section className="bg-zinc-950 py-24 md:py-32 relative overflow-hidden">
+      {/* Subtle glow */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="vibe-container px-6 relative">
+      <div className="max-w-5xl mx-auto px-6 relative">
         {/* Header */}
-        <div ref={headerRef} className="max-w-4xl mx-auto text-center mb-16 opacity-0">
-          <h2 className="text-display-premium text-white text-3xl md:text-5xl">
+        <div
+          ref={headerRef}
+          className={`text-center mb-16 transition-all duration-700 ${
+            headerVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-tight">
             My Qualifications
           </h2>
         </div>
 
         {/* Two column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
-          {/* What I Don't Have - Rejection Column */}
-          <div>
-            <div className="vibe-card-enhanced p-6 md:p-8 h-full">
-              <h3 className="text-zinc-500 text-sm uppercase tracking-widest mb-6">
-                What I Don&apos;t Have
-              </h3>
-              <ul className="space-y-5">
-                {dontHave.map((item, index) => (
-                  <RejectionItem
-                    key={index}
-                    text={item}
-                    delay={isMobile ? 0 : getRejectDelay(index)}
-                    isActive={isActive}
-                  />
-                ))}
-              </ul>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* What I Don't Have */}
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 md:p-8">
+            <h3 className="text-zinc-500 text-xs uppercase tracking-widest mb-6 font-semibold">
+              What I Don&apos;t Have
+            </h3>
+            <ul className="space-y-5">
+              {dontHave.map((item, index) => (
+                <RejectionItem key={index} text={item} delay={index * 200} />
+              ))}
+            </ul>
           </div>
 
-          {/* What I Have - Approval Column */}
-          <div>
-            <div className="vibe-card-enhanced p-6 md:p-8 h-full hover-glow">
-              <h3 className="text-zinc-500 text-sm uppercase tracking-widest mb-6">
-                What I Have
-              </h3>
-              <ul className="space-y-4">
-                {doHave.map((item, index) => (
-                  <ApprovalItem
-                    key={index}
-                    text={item}
-                    delay={isMobile ? index * 0.1 : getApprovalDelay(index)}
-                    isActive={isActive}
-                  />
-                ))}
-              </ul>
-            </div>
+          {/* What I Have */}
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 md:p-8 hover:border-green-500/30 transition-colors">
+            <h3 className="text-zinc-500 text-xs uppercase tracking-widest mb-6 font-semibold">
+              What I Have
+            </h3>
+            <ul className="space-y-4">
+              {doHave.map((item, index) => (
+                <ApprovalItem key={index} text={item} delay={index * 150} />
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Bottom quote / mic drop */}
-        <div ref={bottomQuoteRef} className="max-w-3xl mx-auto mt-16 text-center opacity-0">
-          <p className="text-zinc-500 text-lg italic mb-6">
+        {/* Bottom quote */}
+        <div className="max-w-3xl mx-auto mt-16 text-center">
+          <p className="text-zinc-500 text-lg italic mb-4">
             &ldquo;But how can you call yourself a developer if—&rdquo;
           </p>
-          <p className="text-white text-xl md:text-2xl font-medium leading-relaxed">
+          <p className="text-white text-xl md:text-2xl font-medium">
             I ship features. I fix bugs. I make things that work.
           </p>
-          <p className="text-display-premium text-purple-400 text-2xl md:text-3xl mt-4">
+          <p className="text-purple-400 text-2xl md:text-3xl font-bold mt-4">
             What would you call that?
           </p>
         </div>

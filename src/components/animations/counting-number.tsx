@@ -1,37 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 interface CountingNumberProps {
-  /** Target number to count to */
   target: number;
-  /** Duration of the counting animation in seconds */
   duration?: number;
-  /** Prefix before the number (e.g., "$") */
   prefix?: string;
-  /** Suffix after the number (e.g., "%", "+") */
   suffix?: string;
-  /** Number of decimal places to show */
   decimals?: number;
-  /** Only animate once when entering view */
   once?: boolean;
-  /** Additional CSS classes */
   className?: string;
-  /** Start counting from this number (default: 0) */
   from?: number;
 }
 
 /**
- * Counting Number Animation
- *
- * Animates a number from 0 (or `from`) to `target` when scrolled into view.
- * Uses GSAP ScrollTrigger for smooth, performant counting.
- *
- * Usage:
- * <CountingNumber target={25} suffix="%" />
- * <CountingNumber target={1000} prefix="$" duration={2} />
+ * Counting Number Animation - Simple, reliable implementation
+ * Uses Intersection Observer for better SSR compatibility
  */
 export function CountingNumber({
   target,
@@ -39,64 +23,59 @@ export function CountingNumber({
   prefix = "",
   suffix = "",
   decimals = 0,
-  once = true,
   className = "",
   from = 0,
 }: CountingNumberProps) {
   const containerRef = useRef<HTMLSpanElement>(null);
   const [displayValue, setDisplayValue] = useState(from);
-  const hasAnimated = useRef(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || hasStarted) return;
 
-    // Skip if already animated and once is true
-    if (once && hasAnimated.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasStarted) {
+            setHasStarted(true);
 
-    // Ensure ScrollTrigger is registered
-    gsap.registerPlugin(ScrollTrigger);
+            // Start the counting animation
+            const startTime = performance.now();
+            const durationMs = duration * 1000;
 
-    const obj = { value: from };
+            const animate = (currentTime: number) => {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / durationMs, 1);
 
-    const trigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top 85%",
-      once: once,
-      onEnter: () => {
-        if (once && hasAnimated.current) return;
-        hasAnimated.current = true;
+              // Ease out cubic
+              const easeProgress = 1 - Math.pow(1 - progress, 3);
+              const currentValue = from + (target - from) * easeProgress;
 
-        gsap.to(obj, {
-          value: target,
-          duration: duration,
-          ease: "power2.out",
-          onUpdate: () => {
-            setDisplayValue(obj.value);
-          },
+              setDisplayValue(currentValue);
+
+              if (progress < 1) {
+                animationRef.current = requestAnimationFrame(animate);
+              }
+            };
+
+            animationRef.current = requestAnimationFrame(animate);
+          }
         });
       },
-      onEnterBack: () => {
-        // Only re-animate if once is false
-        if (!once) {
-          obj.value = from;
-          gsap.to(obj, {
-            value: target,
-            duration: duration,
-            ease: "power2.out",
-            onUpdate: () => {
-              setDisplayValue(obj.value);
-            },
-          });
-        }
-      },
-    });
+      { threshold: 0.2, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    observer.observe(containerRef.current);
 
     return () => {
-      trigger.kill();
+      observer.disconnect();
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
-  }, [target, duration, from, once]);
+  }, [target, duration, from, hasStarted]);
 
-  // Format the display value
   const formattedValue = displayValue.toFixed(decimals);
 
   return (

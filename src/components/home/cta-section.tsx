@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const evidenceBullets = [
   "25% of Y Combinator startups are 95% AI-coded",
@@ -13,244 +11,110 @@ const evidenceBullets = [
 ];
 
 /**
- * CTA Section - "The Crescendo"
- *
- * A theatrical spotlight reveal with 5 phases:
- * 1. Darkness - Section starts dim with spotlight cone appearing
- * 2. Headline - Title scales up dramatically
- * 3. Hesitation - Humor lines with comedic timing
- * 4. Evidence - Bullets fly in from alternating sides
- * 5. Button - Elastic entrance with spotlight focus
+ * CTA Section - The Grand Finale
+ * Clean, reliable animations with proper visibility
  */
 export function CTASection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const spotlightRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLHeadingElement>(null);
-  const hesitationRefs = useRef<(HTMLParagraphElement | null)[]>([]);
-  const bulletRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const closerRef = useRef<HTMLParagraphElement>(null);
-  const buttonRef = useRef<HTMLDivElement>(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [showHesitation, setShowHesitation] = useState([false, false, false]);
+  const [showBullets, setShowBullets] = useState(false);
+  const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isVisible) {
+          setIsVisible(true);
 
-  useEffect(() => {
-    if (!sectionRef.current || hasAnimated) return;
+          // Stagger hesitation lines with comedic timing
+          setTimeout(() => setShowHesitation([true, false, false]), 300);
+          setTimeout(() => setShowHesitation([true, true, false]), 800);
+          setTimeout(() => setShowHesitation([true, true, true]), 1200);
 
-    gsap.registerPlugin(ScrollTrigger);
+          // Show bullets
+          setTimeout(() => setShowBullets(true), 1600);
 
-    const section = sectionRef.current;
-    const spotlight = spotlightRef.current;
-    const headline = headlineRef.current;
-    const hesitations = hesitationRefs.current.filter(Boolean);
-    const bullets = bulletRefs.current.filter(Boolean);
-    const closer = closerRef.current;
-    const button = buttonRef.current;
-
-    // Set initial states
-    gsap.set(spotlight, { opacity: 0, scaleY: 0, transformOrigin: "top" });
-    gsap.set(headline, { opacity: 0, scale: 0.8, y: 30 });
-    gsap.set(hesitations, { opacity: 0, y: 20 });
-    gsap.set(bullets, { opacity: 0, x: (i) => (i % 2 === 0 ? -80 : 80) });
-    gsap.set(closer, { opacity: 0, y: 20 });
-    gsap.set(button, { opacity: 0, scale: 0 });
-
-    // Create the theatrical timeline
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: "top 60%",
-        once: true,
-        onEnter: () => setHasAnimated(true),
+          // Show button
+          setTimeout(() => setShowButton(true), 2200);
+        }
       },
-    });
-
-    // Mobile: simplified sequence
-    if (isMobile) {
-      tl.to(headline, { opacity: 1, scale: 1, y: 0, duration: 0.6 }, 0)
-        .to(hesitations, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 }, 0.3)
-        .to(bullets, { opacity: 1, x: 0, duration: 0.4, stagger: 0.1 }, 0.6)
-        .to(closer, { opacity: 1, y: 0, duration: 0.4 }, 0.9)
-        .to(button, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }, 1.1);
-      return;
-    }
-
-    // Desktop: full theatrical sequence
-
-    // Phase 1: Spotlight appears (0 - 0.8s)
-    tl.to(
-      spotlight,
-      {
-        opacity: 1,
-        scaleY: 1,
-        duration: 1,
-        ease: "power2.out",
-      },
-      0
+      { threshold: 0.2 }
     );
 
-    // Phase 2: Headline emerges (0.3 - 1.1s)
-    tl.to(
-      headline,
-      {
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-      },
-      0.3
-    );
-
-    // Phase 3: Hesitation lines with comedic timing (1.0 - 2.5s)
-    tl.to(
-      hesitations[0],
-      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-      1.0
-    );
-    tl.to(
-      hesitations[1],
-      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-      1.5 // Deliberate pause for comedic timing
-    );
-    tl.to(
-      hesitations[2],
-      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-      1.9
-    );
-
-    // Phase 4: Evidence bullets fly in (2.3 - 3.2s)
-    bullets.forEach((bullet, i) => {
-      tl.to(
-        bullet,
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          ease: "power2.out",
-        },
-        2.3 + i * 0.2
-      );
-    });
-
-    // Closer line (3.0s)
-    tl.to(
-      closer,
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        ease: "power2.out",
-      },
-      3.0
-    );
-
-    // Phase 5: Button entrance with spotlight focus (3.3 - 4.2s)
-    tl.to(
-      spotlight,
-      {
-        scaleX: 0.6,
-        y: 100,
-        duration: 0.8,
-        ease: "power2.inOut",
-      },
-      3.3
-    );
-
-    tl.to(
-      button,
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.7,
-        ease: "elastic.out(1, 0.5)",
-      },
-      3.5
-    );
-
-    return () => {
-      tl.kill();
-      ScrollTrigger.getAll().forEach((t) => {
-        if (t.vars.trigger === section) t.kill();
-      });
-    };
-  }, [hasAnimated, isMobile]);
-
-  // Helper to set refs
-  const setHesitationRef = (index: number) => (el: HTMLParagraphElement | null) => {
-    hesitationRefs.current[index] = el;
-  };
-
-  const setBulletRef = (index: number) => (el: HTMLDivElement | null) => {
-    bulletRefs.current[index] = el;
-  };
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [isVisible]);
 
   return (
     <section
       ref={sectionRef}
-      className="bg-vibe-dark py-24 md:py-40 relative overflow-hidden"
+      className="bg-zinc-950 py-24 md:py-40 relative overflow-hidden"
     >
-      {/* Spotlight Cone */}
-      <div
-        ref={spotlightRef}
-        className="spotlight-cone hidden md:block"
-        aria-hidden="true"
-      />
+      {/* Spotlight glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[800px] bg-gradient-to-b from-purple-500/10 via-purple-500/5 to-transparent pointer-events-none blur-3xl" />
 
-      {/* Ambient glow (fallback) */}
-      <div className="glow-purple glow-top opacity-30" />
-
-      {/* Subtle gradient divider */}
+      {/* Gradient divider */}
       <div className="h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent mb-16 md:mb-24" />
 
-      <div className="vibe-container px-6 relative">
-        <div className="max-w-3xl mx-auto text-center">
+      <div className="max-w-4xl mx-auto px-6 relative">
+        <div className="text-center">
           {/* Headline */}
           <h2
-            ref={headlineRef}
-            className="text-display-premium text-white text-3xl md:text-5xl lg:text-6xl will-change-transform"
+            className={`text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight transition-all duration-700 ${
+              isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-95"
+            }`}
           >
             Ready to Hire a Vibe Coder?
           </h2>
 
-          {/* The hesitation - each line separate for timing control */}
-          <div className="mt-10 space-y-2">
+          {/* Hesitation lines with comedic timing */}
+          <div className="mt-10 space-y-3">
             <p
-              ref={setHesitationRef(0)}
-              className="text-zinc-400 text-lg md:text-xl leading-relaxed"
+              className={`text-zinc-400 text-lg md:text-xl transition-all duration-500 ${
+                showHesitation[0] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
             >
               I know. It feels wrong.
             </p>
             <p
-              ref={setHesitationRef(1)}
-              className="text-zinc-400 text-lg md:text-xl leading-relaxed"
+              className={`text-zinc-400 text-lg md:text-xl transition-all duration-500 ${
+                showHesitation[1] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
             >
               Like ordering dessert before dinner.
             </p>
             <p
-              ref={setHesitationRef(2)}
-              className="text-zinc-400 text-lg md:text-xl leading-relaxed"
+              className={`text-zinc-400 text-lg md:text-xl transition-all duration-500 ${
+                showHesitation[2] ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
             >
               Like skipping the tutorial.
             </p>
           </div>
 
           {/* The pivot */}
-          <p className="mt-10 text-zinc-300 text-lg">But consider this:</p>
+          <p
+            className={`mt-10 text-zinc-300 text-lg font-medium transition-all duration-500 ${
+              showBullets ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            But consider this:
+          </p>
 
           {/* Evidence bullets */}
-          <div className="mt-8 space-y-4 max-w-xl mx-auto">
+          <div
+            className={`mt-6 space-y-3 max-w-xl mx-auto transition-all duration-700 ${
+              showBullets ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
             {evidenceBullets.map((bullet, index) => (
               <div
                 key={index}
-                ref={setBulletRef(index)}
-                className="flex items-start gap-3 group will-change-transform"
+                className="flex items-start gap-3 group"
+                style={{
+                  transitionDelay: `${index * 100}ms`,
+                }}
               >
                 <span className="text-purple-400 mt-1 transition-transform group-hover:translate-x-1">
                   →
@@ -262,22 +126,28 @@ export function CTASection() {
 
           {/* The closer */}
           <p
-            ref={closerRef}
-            className="mt-12 text-white text-xl md:text-2xl font-medium"
+            className={`mt-12 text-white text-xl md:text-2xl font-semibold transition-all duration-500 ${
+              showButton ? "opacity-100" : "opacity-0"
+            }`}
           >
             The future is here.{" "}
-            <span className="text-gradient-purple">It&apos;s just vibes.</span>
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              It&apos;s just vibes.
+            </span>
           </p>
 
-          {/* CTA with Border Beam */}
+          {/* CTA Button */}
           <div
-            ref={buttonRef}
-            className="mt-12 flex flex-col items-center gap-4 will-change-transform"
+            className={`mt-10 flex flex-col items-center gap-4 transition-all duration-700 ${
+              showButton ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-90"
+            }`}
           >
             <Link
               href="/estimate"
-              className="group relative inline-flex items-center gap-2 bg-white text-black rounded-full text-lg px-10 py-4 font-medium border-beam overflow-visible hover:bg-zinc-100 transition-colors"
+              className="group relative inline-flex items-center gap-2 bg-white text-black rounded-full text-lg px-10 py-4 font-semibold overflow-hidden hover:bg-zinc-100 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]"
             >
+              {/* Animated border */}
+              <span className="absolute inset-0 rounded-full border-2 border-purple-400/50 animate-pulse" />
               <span className="relative z-10">Get Your Estimate</span>
               <ArrowRight
                 size={20}
