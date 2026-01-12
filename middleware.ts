@@ -13,15 +13,13 @@ export default clerkMiddleware(async (auth, req) => {
     // Protect the route (requires sign-in)
     await auth.protect();
 
-    // TODO: Re-enable email check after testing
-    // Get session claims to check email
-    // const { sessionClaims } = await auth();
-    // const userEmail = sessionClaims?.email as string | undefined;
-    // console.log("User email from claims:", userEmail);
+    // Check if user email is in admin list
+    const { sessionClaims } = await auth();
+    const userEmail = sessionClaims?.email as string | undefined;
 
-    // if (!userEmail || !ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
-    //   return NextResponse.redirect(new URL("/", req.url));
-    // }
+    if (!userEmail || !ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
   }
 });
 
