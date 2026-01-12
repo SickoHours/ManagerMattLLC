@@ -190,12 +190,14 @@ Generate a detailed PRD for this project. Return ONLY valid JSON.`;
         throw new Error("Invalid PRD format: missing userStories");
       }
 
-      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      // Normalize user stories - AI sometimes uses different field names:
+      // - "criteria" instead of "acceptanceCriteria"
+      // - "name" instead of "title"
       const normalizedPRD = {
         ...parsed,
         userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
           id: story.id,
-          title: story.title,
+          title: story.title || story.name || "",
           description: story.description,
           acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
         })),
@@ -499,12 +501,14 @@ Generate a detailed PRD for this project. Return ONLY valid JSON.`;
         throw new Error("Invalid PRD format: missing userStories");
       }
 
-      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      // Normalize user stories - AI sometimes uses different field names:
+      // - "criteria" instead of "acceptanceCriteria"
+      // - "name" instead of "title"
       const normalizedPRD = {
         ...parsed,
         userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
           id: story.id,
-          title: story.title,
+          title: story.title || story.name || "",
           description: story.description,
           acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
         })),
@@ -769,12 +773,14 @@ Return an enhanced PRD as JSON with the same structure: {"summary":"...","userSt
         throw new Error("Invalid enhanced PRD format: missing userStories");
       }
 
-      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      // Normalize user stories - AI sometimes uses different field names:
+      // - "criteria" instead of "acceptanceCriteria"
+      // - "name" instead of "title"
       const normalizedPRD = {
         ...parsed,
         userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
           id: story.id,
-          title: story.title,
+          title: story.title || story.name || "",
           description: story.description,
           acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
         })),
