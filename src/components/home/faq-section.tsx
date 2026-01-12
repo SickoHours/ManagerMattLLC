@@ -54,12 +54,12 @@ export function FAQSection() {
   };
 
   return (
-    <section className="bg-vibe-dark py-24 md:py-32">
-      <div className="vibe-container px-6">
+    <section className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden">
+      <div className="vibe-container px-6 relative">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="aura-reveal">
-            <h2 className="text-vibe-display text-white text-3xl md:text-5xl">
+          <div className="aura-hidden">
+            <h2 className="text-display-premium text-white text-3xl md:text-5xl">
               Questions?
             </h2>
           </div>
@@ -70,31 +70,33 @@ export function FAQSection() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className={`aura-reveal aura-reveal-delay-${Math.min(index + 1, 4)} vibe-card overflow-hidden`}
+              className="aura-hidden"
             >
-              <button
-                onClick={() => toggle(index)}
-                className="w-full flex items-center justify-between p-6 text-left"
-              >
-                <span className="text-white font-medium pr-4">
-                  {faq.question}
-                </span>
-                <ChevronDown
-                  size={20}
-                  className={`flex-shrink-0 text-zinc-500 transition-transform duration-200 ${
-                    openIndex === index ? "rotate-180" : ""
+              <div className="vibe-card-enhanced overflow-hidden">
+                <button
+                  onClick={() => toggle(index)}
+                  className="w-full flex items-center justify-between p-6 text-left group"
+                >
+                  <span className="text-white font-medium pr-4 group-hover:text-purple-300 transition-colors">
+                    {faq.question}
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    className={`flex-shrink-0 text-zinc-500 transition-transform duration-300 ${
+                      openIndex === index ? "rotate-180 text-purple-400" : ""
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ease-out ${
+                    openIndex === index ? "max-h-96" : "max-h-0"
                   }`}
-                />
-              </button>
-              <div
-                className={`overflow-hidden transition-all duration-200 ${
-                  openIndex === index ? "max-h-96" : "max-h-0"
-                }`}
-              >
-                <div className="px-6 pb-6">
-                  <p className="text-zinc-400 text-sm leading-relaxed">
-                    {faq.answer}
-                  </p>
+                >
+                  <div className="px-6 pb-6">
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      {faq.answer}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

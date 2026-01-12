@@ -9,42 +9,45 @@ import { QualificationsSection } from "@/components/home/qualifications-section"
 import { CommunicationSection } from "@/components/home/communication-section";
 import { FAQSection } from "@/components/home/faq-section";
 import { CTASection } from "@/components/home/cta-section";
+import { AnimationProvider } from "@/components/providers/animation-provider";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#020202]">
-      <Header />
+    <AnimationProvider>
+      <div className="min-h-screen flex flex-col bg-[#020202]">
+        <Header />
 
-      <main className="flex-1">
-        {/* The Confession */}
-        <Hero />
+        <main className="flex-1">
+          {/* The Confession */}
+          <Hero />
 
-        {/* Why This Matters - The Economics */}
-        <LaborSection />
+          {/* Why This Matters - The Economics */}
+          <LaborSection />
 
-        {/* Proof It Works */}
-        <EvidenceSection />
+          {/* Proof It Works */}
+          <EvidenceSection />
 
-        {/* How We Work Together */}
-        <ProcessSection />
+          {/* How We Work Together */}
+          <ProcessSection />
 
-        {/* Engineering Practices */}
-        <SafetySection />
+          {/* Engineering Practices */}
+          <SafetySection />
 
-        {/* What I Bring */}
-        <QualificationsSection />
+          {/* What I Bring */}
+          <QualificationsSection />
 
-        {/* What to Expect */}
-        <CommunicationSection />
+          {/* What to Expect */}
+          <CommunicationSection />
 
-        {/* Answer Objections */}
-        <FAQSection />
+          {/* Answer Objections */}
+          <FAQSection />
 
-        {/* Final Push */}
-        <CTASection />
-      </main>
+          {/* Final Push */}
+          <CTASection />
+        </main>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </AnimationProvider>
   );
 }

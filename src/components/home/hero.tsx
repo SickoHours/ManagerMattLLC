@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center bg-vibe-dark">
+    <section className="relative min-h-[90vh] flex items-center bg-vibe-dark overflow-hidden">
+      {/* Ambient glow */}
+      <div className="glow-purple absolute top-0 left-1/2 -translate-x-1/2 opacity-60" />
+
       {/* Spotlight overlay */}
       <div className="absolute inset-0 bg-spotlight pointer-events-none" />
 
-      <div className="vibe-container w-full px-6 py-24 md:py-32">
+      <div className="vibe-container w-full px-6 py-24 md:py-32 relative">
         <div className="max-w-3xl mx-auto">
           {/* Intro */}
           <div className="aura-reveal">
@@ -26,7 +30,7 @@ export function Hero() {
 
           {/* THE HEADLINE - the reveal */}
           <div className="aura-reveal aura-reveal-delay-2 mt-10">
-            <h1 className="text-vibe-display text-white text-5xl md:text-7xl lg:text-8xl">
+            <h1 className="text-display-premium text-white text-5xl md:text-7xl lg:text-8xl">
               I&apos;m a{" "}
               <span className="text-gradient-purple">vibe coder.</span>
             </h1>
@@ -91,17 +95,27 @@ export function Hero() {
 
           {/* The congratulations */}
           <div className="aura-reveal aura-reveal-delay-8 mt-12">
-            <p className="text-vibe-display text-white text-2xl md:text-3xl tracking-wide">
+            <p className="text-display-premium text-white text-2xl md:text-3xl tracking-wide">
               Congratulations. You just witnessed history.
             </p>
           </div>
 
           {/* CTA */}
           <div className="aura-reveal aura-reveal-delay-8 mt-12 flex flex-col sm:flex-row gap-4">
-            <Link href="/estimate" className="btn-vibe-primary shimmer-border text-center">
+            <Link
+              href="/estimate"
+              className="group inline-flex items-center justify-center gap-2 bg-white text-black rounded-full px-8 py-3 font-medium hover:bg-zinc-100 transition-colors"
+            >
               Get Your Estimate
+              <ArrowRight
+                size={18}
+                className="transition-transform group-hover:translate-x-1"
+              />
             </Link>
-            <Link href="/work" className="btn-vibe-secondary text-center">
+            <Link
+              href="/work"
+              className="btn-vibe-secondary text-center"
+            >
               See My Work
             </Link>
           </div>

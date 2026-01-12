@@ -7,8 +7,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
   { href: "/process", label: "Process" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {
@@ -17,7 +15,7 @@ export function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      setScrolled(window.scrollY > 50);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -25,47 +23,39 @@ export function Header() {
   }, []);
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-150 ${
-        scrolled
-          ? "bg-black/80 backdrop-blur-md border-b border-white/10"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="vibe-container px-6">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="text-xl font-semibold text-white hover:opacity-80 transition-opacity"
-          >
-            Manager Matt
-          </Link>
+    <>
+      {/* Spacer for floating nav */}
+      <div className="h-24" />
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-zinc-400 hover:text-white transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* CTA Buttons */}
-          <div className="flex items-center gap-3">
+      {/* Floating Navigation */}
+      <header className={`nav-floating ${scrolled ? "scrolled" : ""}`}>
+        <div className="px-3 py-2 md:px-4">
+          <div className="flex items-center gap-2 md:gap-6">
+            {/* Logo */}
             <Link
-              href="/sign-in"
-              className="hidden sm:block text-sm text-zinc-400 hover:text-white transition-colors"
+              href="/"
+              className="px-3 py-1 text-sm md:text-base font-semibold text-white hover:opacity-80 transition-opacity whitespace-nowrap"
             >
-              Sign In
+              Manager Matt
             </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="px-4 py-2 text-sm text-zinc-400 hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* CTA Button */}
             <Link
               href="/estimate"
-              className="hidden sm:block btn-vibe-primary text-sm px-5 py-2"
+              className="ml-auto md:ml-4 bg-white text-black px-4 py-1.5 md:px-5 md:py-2 rounded-full text-sm font-medium hover:bg-zinc-100 transition-colors"
             >
               Get Estimate
             </Link>
@@ -73,12 +63,12 @@ export function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 -mr-2 text-white hover:bg-white/10 rounded transition-colors"
+              className="md:hidden p-2 -mr-1 text-white hover:bg-white/10 rounded-full transition-colors"
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -103,39 +93,42 @@ export function Header() {
             </button>
           </div>
         </div>
+      </header>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/10">
-            <nav className="flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="py-2 text-base text-zinc-400 hover:text-white transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="fixed top-24 left-4 right-4 z-50 bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl md:hidden">
+          <nav className="flex flex-col p-4 gap-1">
+            {navLinks.map((link) => (
               <Link
-                href="/estimate"
-                className="mt-2 btn-vibe-primary text-center"
+                key={link.href}
+                href={link.href}
+                className="px-4 py-3 text-base text-zinc-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Get Estimate
+                {link.label}
               </Link>
+            ))}
+            <div className="mt-2 pt-2 border-t border-white/10">
               <Link
                 href="/sign-in"
-                className="mt-2 py-2 text-center text-base text-zinc-400 hover:text-white transition-colors"
+                className="block px-4 py-3 text-base text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In
               </Link>
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
+            </div>
+          </nav>
+        </div>
+      )}
+
+      {/* Overlay for mobile menu */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+    </>
   );
 }

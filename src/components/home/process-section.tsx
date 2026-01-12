@@ -35,16 +35,19 @@ const clientSteps = [
 
 export function ProcessSection() {
   return (
-    <section className="bg-vibe-dark py-24 md:py-32">
-      <div className="vibe-container px-6">
+    <section className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="glow-purple-sm absolute top-1/4 right-0 opacity-30" />
+
+      <div className="vibe-container px-6 relative">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="aura-reveal">
-            <h2 className="text-vibe-display text-white text-3xl md:text-5xl">
+          <div className="aura-hidden">
+            <h2 className="text-display-premium text-white text-3xl md:text-5xl">
               How We Work Together
             </h2>
           </div>
-          <div className="aura-reveal aura-reveal-delay-1 mt-4">
+          <div className="aura-hidden mt-4">
             <p className="text-zinc-400 text-lg">
               A clear, predictable process from idea to launch.
             </p>
@@ -59,10 +62,10 @@ export function ProcessSection() {
 
             {/* Steps */}
             <div className="space-y-8">
-              {clientSteps.map((step, index) => (
+              {clientSteps.map((step) => (
                 <div
                   key={step.number}
-                  className={`aura-reveal aura-reveal-delay-${index + 2} relative`}
+                  className="aura-hidden relative"
                 >
                   <div className="flex gap-6">
                     {/* Number circle */}
@@ -71,7 +74,7 @@ export function ProcessSection() {
                     </div>
 
                     {/* Content card */}
-                    <div className="flex-1 vibe-card p-6">
+                    <div className="flex-1 vibe-card-enhanced p-6 hover-glow">
                       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div>
                           <h3 className="text-white text-xl font-medium mb-2">

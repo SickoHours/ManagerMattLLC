@@ -19,12 +19,15 @@ const doHave = [
 
 export function QualificationsSection() {
   return (
-    <section className="bg-vibe-dark py-24 md:py-32">
-      <div className="vibe-container px-6">
+    <section className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="glow-purple-sm absolute bottom-0 left-1/2 -translate-x-1/2 opacity-30" />
+
+      <div className="vibe-container px-6 relative">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="aura-reveal">
-            <h2 className="text-vibe-display text-white text-3xl md:text-5xl">
+          <div className="aura-hidden">
+            <h2 className="text-display-premium text-white text-3xl md:text-5xl">
               My Qualifications
             </h2>
           </div>
@@ -33,9 +36,9 @@ export function QualificationsSection() {
         {/* Two column grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
           {/* What I Don't Have */}
-          <div className="aura-reveal aura-reveal-delay-1">
-            <div className="vibe-card p-6 md:p-8 h-full">
-              <h3 className="text-zinc-500 text-sm uppercase tracking-wider mb-6">
+          <div className="aura-hidden">
+            <div className="vibe-card-enhanced p-6 md:p-8 h-full">
+              <h3 className="text-zinc-500 text-sm uppercase tracking-widest mb-6">
                 What I Don&apos;t Have
               </h3>
               <ul className="space-y-4">
@@ -54,9 +57,9 @@ export function QualificationsSection() {
           </div>
 
           {/* What I Have */}
-          <div className="aura-reveal aura-reveal-delay-2">
-            <div className="vibe-card p-6 md:p-8 h-full">
-              <h3 className="text-zinc-500 text-sm uppercase tracking-wider mb-6">
+          <div className="aura-hidden">
+            <div className="vibe-card-enhanced p-6 md:p-8 h-full hover-glow">
+              <h3 className="text-zinc-500 text-sm uppercase tracking-widest mb-6">
                 What I Have
               </h3>
               <ul className="space-y-4">
@@ -75,18 +78,18 @@ export function QualificationsSection() {
 
         {/* Bottom quote / mic drop */}
         <div className="max-w-3xl mx-auto mt-16 text-center">
-          <div className="aura-reveal aura-reveal-delay-3">
+          <div className="aura-hidden">
             <p className="text-zinc-500 text-lg italic mb-6">
               &ldquo;But how can you call yourself a developer if—&rdquo;
             </p>
           </div>
-          <div className="aura-reveal aura-reveal-delay-4">
+          <div className="aura-hidden">
             <p className="text-white text-xl md:text-2xl font-medium leading-relaxed">
               I ship features. I fix bugs. I make things that work.
             </p>
           </div>
-          <div className="aura-reveal aura-reveal-delay-5 mt-4">
-            <p className="text-vibe-display text-purple-400 text-2xl md:text-3xl">
+          <div className="aura-hidden mt-4">
+            <p className="text-display-premium text-purple-400 text-2xl md:text-3xl">
               What would you call that?
             </p>
           </div>

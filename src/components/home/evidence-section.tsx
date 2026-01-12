@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { TrendingUp, Cpu, Users } from "lucide-react";
 
 interface EvidenceCardProps {
@@ -22,29 +21,8 @@ function EvidenceCard({
   sourceUrl,
   sourceName,
 }: EvidenceCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const card = cardRef.current;
-    if (!card) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty("--mouse-x", `${x}px`);
-      card.style.setProperty("--mouse-y", `${y}px`);
-    };
-
-    card.addEventListener("mousemove", handleMouseMove);
-    return () => card.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
   return (
-    <div
-      ref={cardRef}
-      className="vibe-card p-6 md:p-8 flex flex-col h-full"
-    >
+    <div className="vibe-card-enhanced p-6 md:p-8 flex flex-col h-full hover-lift">
       {/* Icon */}
       <div className="text-purple-400 mb-6">{icon}</div>
 
@@ -73,9 +51,12 @@ function EvidenceCard({
         href={sourceUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 text-zinc-500 text-xs hover:text-zinc-400 transition-colors"
+        className="mt-4 text-zinc-500 text-xs hover:text-zinc-400 transition-colors inline-flex items-center gap-1 group"
       >
-        Source: {sourceName} ↗
+        Source: {sourceName}
+        <span className="transition-transform group-hover:translate-x-0.5">
+          ↗
+        </span>
       </a>
     </div>
   );
@@ -83,16 +64,19 @@ function EvidenceCard({
 
 export function EvidenceSection() {
   return (
-    <section className="bg-vibe-dark py-24 md:py-32">
-      <div className="vibe-container px-6">
+    <section className="bg-vibe-dark py-24 md:py-32 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="glow-purple glow-center opacity-30" />
+
+      <div className="vibe-container px-6 relative">
         {/* Header */}
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <div className="aura-reveal">
-            <h2 className="text-vibe-display text-white text-3xl md:text-5xl">
+          <div className="aura-hidden">
+            <h2 className="text-display-premium text-white text-3xl md:text-5xl">
               But Does This Actually Work?
             </h2>
           </div>
-          <div className="aura-reveal aura-reveal-delay-1 mt-4">
+          <div className="aura-hidden mt-4">
             <p className="text-zinc-400 text-lg">
               Great question. Let me show you the receipts.
             </p>
@@ -101,7 +85,7 @@ export function EvidenceSection() {
 
         {/* Evidence Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
-          <div className="aura-reveal aura-reveal-delay-2">
+          <div className="aura-hidden">
             <EvidenceCard
               icon={<TrendingUp size={32} strokeWidth={1.5} />}
               stat="25%"
@@ -113,7 +97,7 @@ export function EvidenceSection() {
             />
           </div>
 
-          <div className="aura-reveal aura-reveal-delay-3">
+          <div className="aura-hidden">
             <EvidenceCard
               icon={<Cpu size={32} strokeWidth={1.5} />}
               stat="80.9%"
@@ -124,7 +108,7 @@ export function EvidenceSection() {
             />
           </div>
 
-          <div className="aura-reveal aura-reveal-delay-4">
+          <div className="aura-hidden">
             <EvidenceCard
               icon={<Users size={32} strokeWidth={1.5} />}
               stat="84%"
