@@ -1,24 +1,31 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Oswald } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/convex-provider";
 
-const inter = Inter({
-  variable: "--font-inter",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
   display: "swap",
 });
 
+const oswald = Oswald({
+  variable: "--font-oswald",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Manager Matt LLC | AI-Accelerated Development",
+  title: "Manager Matt LLC | Vibe Coder",
   description:
-    "Build products that matter. Faster. Clearer. Cheaper. AI-accelerated development with radically transparent estimates and delivery.",
+    "The internet's first portfolio from a self-proclaimed, shameless, unapologetic vibe coder who actually ships production software. To paying clients. Who come back for more.",
   keywords: [
+    "vibe coder",
     "AI development",
     "software development",
     "web development",
-    "mobile development",
-    "MVP development",
+    "Claude AI",
     "startup development",
   ],
 };
@@ -29,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="en" className={`${plusJakarta.variable} ${oswald.variable}`}>
+      <body className="min-h-screen font-sans antialiased" style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}>
         <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
