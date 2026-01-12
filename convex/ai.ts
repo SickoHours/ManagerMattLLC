@@ -190,8 +190,19 @@ Generate a detailed PRD for this project. Return ONLY valid JSON.`;
         throw new Error("Invalid PRD format: missing userStories");
       }
 
+      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      const normalizedPRD = {
+        ...parsed,
+        userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
+          id: story.id,
+          title: story.title,
+          description: story.description,
+          acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
+        })),
+      };
+
       return {
-        prd: parsed,
+        prd: normalizedPRD,
         usage: result.usage,
       };
     } catch (error) {
@@ -488,8 +499,19 @@ Generate a detailed PRD for this project. Return ONLY valid JSON.`;
         throw new Error("Invalid PRD format: missing userStories");
       }
 
+      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      const normalizedPRD = {
+        ...parsed,
+        userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
+          id: story.id,
+          title: story.title,
+          description: story.description,
+          acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
+        })),
+      };
+
       return {
-        prd: parsed,
+        prd: normalizedPRD,
         usage: result.usage,
       };
     } catch (error) {
@@ -747,8 +769,19 @@ Return an enhanced PRD as JSON with the same structure: {"summary":"...","userSt
         throw new Error("Invalid enhanced PRD format: missing userStories");
       }
 
+      // Normalize user stories - AI sometimes returns "criteria" instead of "acceptanceCriteria"
+      const normalizedPRD = {
+        ...parsed,
+        userStories: parsed.userStories.map((story: Record<string, unknown>) => ({
+          id: story.id,
+          title: story.title,
+          description: story.description,
+          acceptanceCriteria: story.acceptanceCriteria || story.criteria || [],
+        })),
+      };
+
       return {
-        prd: parsed,
+        prd: normalizedPRD,
         usage: result.usage,
         enhanced: true,
       };
