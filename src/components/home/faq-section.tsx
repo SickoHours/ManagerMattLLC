@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
+import { gsap } from "gsap";
 
 const faqs = [
   {
@@ -46,6 +47,96 @@ const faqs = [
   },
 ];
 
+interface FAQItemProps {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+function FAQItem({ question, answer, isOpen, onToggle }: FAQItemProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  const animateHeight = useCallback(
+    (open: boolean) => {
+      if (!contentRef.current || !textRef.current) return;
+
+      if (open) {
+        // Opening: animate from 0 to auto height
+        gsap.set(contentRef.current, { height: "auto", overflow: "hidden" });
+        const height = contentRef.current.offsetHeight;
+        gsap.fromTo(
+          contentRef.current,
+          { height: 0 },
+          {
+            height: height,
+            duration: 0.4,
+            ease: "power2.out",
+            onComplete: () => {
+              gsap.set(contentRef.current, { height: "auto", overflow: "visible" });
+            },
+          }
+        );
+        gsap.fromTo(
+          textRef.current,
+          { opacity: 0, y: -10 },
+          { opacity: 1, y: 0, duration: 0.3, delay: 0.1, ease: "power2.out" }
+        );
+      } else {
+        // Closing: animate from current height to 0
+        gsap.to(contentRef.current, {
+          height: 0,
+          duration: 0.3,
+          ease: "power2.inOut",
+          overflow: "hidden",
+        });
+        gsap.to(textRef.current, {
+          opacity: 0,
+          duration: 0.15,
+        });
+      }
+    },
+    []
+  );
+
+  // Trigger animation when isOpen changes
+  const prevOpen = useRef(isOpen);
+  if (prevOpen.current !== isOpen) {
+    prevOpen.current = isOpen;
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => animateHeight(isOpen));
+  }
+
+  return (
+    <div className="vibe-card-enhanced overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-6 text-left group"
+        aria-expanded={isOpen}
+      >
+        <span className="text-white font-medium pr-4 group-hover:text-purple-300 transition-colors">
+          {question}
+        </span>
+        <ChevronDown
+          size={20}
+          className={`flex-shrink-0 transition-all duration-300 ${
+            isOpen ? "rotate-180 text-purple-400" : "text-zinc-500"
+          }`}
+        />
+      </button>
+      <div
+        ref={contentRef}
+        style={{ height: isOpen ? "auto" : 0, overflow: "hidden" }}
+      >
+        <div ref={textRef} className="px-6 pb-6" style={{ opacity: isOpen ? 1 : 0 }}>
+          <p className="text-zinc-400 text-sm leading-relaxed">{answer}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -68,37 +159,13 @@ export function FAQSection() {
         {/* FAQ Accordion */}
         <div className="max-w-3xl mx-auto space-y-3">
           {faqs.map((faq, index) => (
-            <div
-              key={index}
-              className="aura-hidden"
-            >
-              <div className="vibe-card-enhanced overflow-hidden">
-                <button
-                  onClick={() => toggle(index)}
-                  className="w-full flex items-center justify-between p-6 text-left group"
-                >
-                  <span className="text-white font-medium pr-4 group-hover:text-purple-300 transition-colors">
-                    {faq.question}
-                  </span>
-                  <ChevronDown
-                    size={20}
-                    className={`flex-shrink-0 text-zinc-500 transition-transform duration-300 ${
-                      openIndex === index ? "rotate-180 text-purple-400" : ""
-                    }`}
-                  />
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ease-out ${
-                    openIndex === index ? "max-h-96" : "max-h-0"
-                  }`}
-                >
-                  <div className="px-6 pb-6">
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div key={index} className="aura-hidden">
+              <FAQItem
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openIndex === index}
+                onToggle={() => toggle(index)}
+              />
             </div>
           ))}
         </div>

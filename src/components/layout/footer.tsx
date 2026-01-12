@@ -1,5 +1,10 @@
+"use client";
+
+import { useRef, useEffect } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const footerLinks = {
   product: [
@@ -19,9 +24,46 @@ const footerLinks = {
 };
 
 export function Footer() {
+  const footerRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!footerRef.current || !contentRef.current) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Parallax reveal - content starts lower and rises up
+    gsap.fromTo(
+      contentRef.current,
+      {
+        yPercent: -30,
+        opacity: 0.5,
+      },
+      {
+        yPercent: 0,
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: "top bottom",
+          end: "top 60%",
+          scrub: 1,
+        },
+      }
+    );
+
+    return () => {
+      ScrollTrigger.getAll().forEach((t) => {
+        if (t.vars.trigger === footerRef.current) {
+          t.kill();
+        }
+      });
+    };
+  }, []);
+
   return (
-    <footer className="bg-black footer-glow relative">
-      <div className="vibe-container px-6 py-16">
+    <footer ref={footerRef} className="bg-black footer-glow relative overflow-hidden">
+      <div ref={contentRef} className="vibe-container px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
           {/* Brand */}
           <div className="md:col-span-1">

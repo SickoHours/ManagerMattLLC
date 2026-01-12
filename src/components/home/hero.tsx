@@ -1,11 +1,25 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { HeroOrbs } from "@/components/animations/parallax-orb";
+import { WordTypewriter } from "@/components/animations/typewriter";
 
 export function Hero() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Trigger dramatic entrance after mount
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative min-h-[90vh] flex items-center bg-vibe-dark overflow-hidden">
+      {/* Parallax orbs */}
+      <HeroOrbs />
+
       {/* Ambient glow */}
       <div className="glow-purple absolute top-0 left-1/2 -translate-x-1/2 opacity-60" />
 
@@ -14,37 +28,43 @@ export function Hero() {
 
       <div className="vibe-container w-full px-6 py-24 md:py-32 relative">
         <div className="max-w-3xl mx-auto">
-          {/* Intro */}
-          <div className="aura-reveal">
+          {/* Intro - dramatic entrance */}
+          <div className={`dramatic-entrance ${isLoaded ? "entered" : ""}`} data-delay="1">
             <p className="text-zinc-400 text-lg md:text-xl">
               Hi. I&apos;m Matt.
             </p>
           </div>
 
           {/* The confession lead-in */}
-          <div className="aura-reveal aura-reveal-delay-1 mt-6">
+          <div className={`dramatic-entrance ${isLoaded ? "entered" : ""} mt-6`} data-delay="2">
             <p className="text-zinc-400 text-lg md:text-xl">
               And I have a confession to make.
             </p>
           </div>
 
-          {/* THE HEADLINE - the reveal */}
-          <div className="aura-reveal aura-reveal-delay-2 mt-10">
+          {/* THE HEADLINE - the reveal with typewriter */}
+          <div className={`dramatic-entrance ${isLoaded ? "entered" : ""} mt-10`} data-delay="3">
             <h1 className="text-display-premium text-white text-5xl md:text-7xl lg:text-8xl">
               I&apos;m a{" "}
-              <span className="text-gradient-purple">vibe coder.</span>
+              <span className="text-gradient-purple">
+                <WordTypewriter
+                  text="vibe coder."
+                  wordDelay={300}
+                  startDelay={1800}
+                />
+              </span>
             </h1>
           </div>
 
           {/* The gasp - comedic beat */}
-          <div className="aura-reveal aura-reveal-delay-3 mt-8">
+          <div className={`dramatic-entrance ${isLoaded ? "entered" : ""} mt-8`} data-delay="4">
             <p className="text-zinc-500 text-xl md:text-2xl italic">
               *gasp*
             </p>
           </div>
 
-          {/* The context */}
-          <div className="aura-reveal aura-reveal-delay-4 mt-10 space-y-4">
+          {/* The context - scroll reveal */}
+          <div className="aura-reveal mt-10 space-y-4">
             <p className="text-zinc-400 text-lg md:text-xl leading-relaxed">
               Yes, that thing senior developers warn junior devs about.
               <br />
@@ -64,7 +84,7 @@ export function Hero() {
           </div>
 
           {/* The pivot */}
-          <div className="aura-reveal aura-reveal-delay-5 mt-8">
+          <div className="aura-reveal aura-reveal-delay-1 mt-8">
             <p className="text-zinc-300 text-lg md:text-xl leading-relaxed">
               I embraced the vibes. I let the AI cook.
               <br />
@@ -73,7 +93,7 @@ export function Hero() {
           </div>
 
           {/* The payoff */}
-          <div className="aura-reveal aura-reveal-delay-6 mt-10">
+          <div className="aura-reveal aura-reveal-delay-2 mt-10">
             <p className="text-white text-xl md:text-2xl leading-relaxed font-medium">
               You&apos;re looking at what might be the internet&apos;s first portfolio
               <br className="hidden md:block" />
@@ -84,7 +104,7 @@ export function Hero() {
           </div>
 
           {/* The proof */}
-          <div className="aura-reveal aura-reveal-delay-7 mt-6">
+          <div className="aura-reveal aura-reveal-delay-3 mt-6">
             <p className="text-zinc-300 text-lg md:text-xl">
               To paying clients.
             </p>
@@ -94,14 +114,14 @@ export function Hero() {
           </div>
 
           {/* The congratulations */}
-          <div className="aura-reveal aura-reveal-delay-8 mt-12">
+          <div className="aura-reveal aura-reveal-delay-4 mt-12">
             <p className="text-display-premium text-white text-2xl md:text-3xl tracking-wide">
               Congratulations. You just witnessed history.
             </p>
           </div>
 
           {/* CTA */}
-          <div className="aura-reveal aura-reveal-delay-8 mt-12 flex flex-col sm:flex-row gap-4">
+          <div className="aura-reveal aura-reveal-delay-5 mt-12 flex flex-col sm:flex-row gap-4">
             <Link
               href="/estimate"
               className="group inline-flex items-center justify-center gap-2 bg-white text-black rounded-full px-8 py-3 font-medium hover:bg-zinc-100 transition-colors"

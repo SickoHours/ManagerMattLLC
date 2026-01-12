@@ -1,10 +1,16 @@
 "use client";
 
 import { TrendingUp, Cpu, Users } from "lucide-react";
+import { CountingNumber } from "@/components/animations/counting-number";
 
 interface EvidenceCardProps {
   icon: React.ReactNode;
-  stat: string;
+  /** Target number to animate to */
+  statTarget: number;
+  /** Number of decimal places */
+  statDecimals?: number;
+  /** Suffix after number (e.g., "%") */
+  statSuffix?: string;
   label: string;
   quote: string;
   attribution?: string;
@@ -14,7 +20,9 @@ interface EvidenceCardProps {
 
 function EvidenceCard({
   icon,
-  stat,
+  statTarget,
+  statDecimals = 0,
+  statSuffix = "",
   label,
   quote,
   attribution,
@@ -26,8 +34,16 @@ function EvidenceCard({
       {/* Icon */}
       <div className="text-purple-400 mb-6">{icon}</div>
 
-      {/* Stat */}
-      <div className="stat-number text-white">{stat}</div>
+      {/* Animated Stat */}
+      <div className="stat-number text-white">
+        <CountingNumber
+          target={statTarget}
+          decimals={statDecimals}
+          suffix={statSuffix}
+          duration={2.5}
+          once={true}
+        />
+      </div>
 
       {/* Label */}
       <p className="text-zinc-400 text-sm md:text-base mt-2 leading-relaxed">
@@ -88,7 +104,8 @@ export function EvidenceSection() {
           <div className="aura-hidden">
             <EvidenceCard
               icon={<TrendingUp size={32} strokeWidth={1.5} />}
-              stat="25%"
+              statTarget={25}
+              statSuffix="%"
               label="of YC Winter 2025 startups have codebases that are 95% AI-generated"
               quote="This isn't a fad. This isn't going away. This is the dominant way to code."
               attribution="Garry Tan, YC CEO"
@@ -100,7 +117,9 @@ export function EvidenceSection() {
           <div className="aura-hidden">
             <EvidenceCard
               icon={<Cpu size={32} strokeWidth={1.5} />}
-              stat="80.9%"
+              statTarget={80.9}
+              statDecimals={1}
+              statSuffix="%"
               label="Claude Opus 4.5 on SWE-bench Verified — the first AI to exceed 80%"
               quote="The gap between intention and execution has shrunk to almost nothing."
               sourceUrl="https://www.anthropic.com/news/claude-opus-4-5"
@@ -111,7 +130,8 @@ export function EvidenceSection() {
           <div className="aura-hidden">
             <EvidenceCard
               icon={<Users size={32} strokeWidth={1.5} />}
-              stat="84%"
+              statTarget={84}
+              statSuffix="%"
               label="of developers now use AI tools in their development processes"
               quote="The barrier to getting your first draft is down to zero. Anyone can do it."
               attribution="David Fowler, Microsoft"
