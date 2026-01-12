@@ -44,18 +44,14 @@ function StatCard({
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >
-      {/* The Big Number */}
+      {/* The Big Number - CountingNumber handles its own scroll-triggered animation */}
       <div className="text-white text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-        {isVisible ? (
-          <CountingNumber
-            target={number}
-            suffix={suffix}
-            duration={2}
-            decimals={number % 1 !== 0 ? 1 : 0}
-          />
-        ) : (
-          <span>0{suffix}</span>
-        )}
+        <CountingNumber
+          target={number}
+          suffix={suffix}
+          duration={2}
+          decimals={number % 1 !== 0 ? 1 : 0}
+        />
       </div>
 
       {/* Label */}
