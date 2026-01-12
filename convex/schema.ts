@@ -179,21 +179,26 @@ export default defineSchema({
   projectInquiries: defineTable({
     // User input (simple, non-technical)
     description: v.string(), // Free-text project description
-    userType: v.union(
-      v.literal("just-me"),
-      v.literal("team"),
-      v.literal("customers"),
-      v.literal("everyone")
+    // userType and timeline are now extracted from AI answers, but kept for backward compat
+    userType: v.optional(
+      v.union(
+        v.literal("just-me"),
+        v.literal("team"),
+        v.literal("customers"),
+        v.literal("everyone")
+      )
     ),
-    timeline: v.union(
-      v.literal("exploring"),
-      v.literal("soon"),
-      v.literal("asap")
+    timeline: v.optional(
+      v.union(
+        v.literal("exploring"),
+        v.literal("soon"),
+        v.literal("asap")
+      )
     ),
     email: v.string(),
     name: v.optional(v.string()),
 
-    // AI-generated clarifying questions
+    // Legacy AI-generated questions (v1 format with emoji)
     generatedQuestions: v.optional(
       v.array(
         v.object({
@@ -210,10 +215,105 @@ export default defineSchema({
       )
     ),
 
-    // User answers to AI questions (format: "1A, 2C, 3B")
+    // New Claude Code-style questions (v2 format with descriptions)
+    generatedQuestionsV2: v.optional(
+      v.array(
+        v.object({
+          question: v.string(), // Full question text
+          header: v.string(), // Short label (max 12 chars)
+          options: v.array(
+            v.object({
+              label: v.string(), // Option text
+              description: v.string(), // Trade-off explanation
+            })
+          ),
+          multiSelect: v.boolean(), // Allow multiple selections
+        })
+      )
+    ),
+
+    // User answers to AI questions
+    // V1 format: "1A, 2C, 3B"
+    // V2 format: "Question header=Selected option, Question 2=Option A, Option B"
     answers: v.optional(v.string()),
 
-    // AI-generated PRD
+    // Two-stage PRD flow
+    // Stage 1: Initial PRD from description + answers
+    initialPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+
+    // Stage 2: AI reviewer findings
+    reviewerGaps: v.optional(v.array(v.string())),
+    reviewerRecommendations: v.optional(v.array(v.string())),
+    reviewerQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    reviewerAnswers: v.optional(v.string()), // "SKIPPED" if user skipped
+
+    // Stage 3: Enhanced PRD (after review)
+    enhancedPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+
+    // Current stage in the flow
+    stage: v.optional(
+      v.union(
+        v.literal("questions"),
+        v.literal("initial-prd"),
+        v.literal("review"),
+        v.literal("enhanced"),
+        v.literal("estimated")
+      )
+    ),
+
+    // Final PRD (enhanced if available, otherwise initial) - kept for backward compat
     prd: v.optional(
       v.object({
         summary: v.string(),

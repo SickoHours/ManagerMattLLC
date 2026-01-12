@@ -552,3 +552,591 @@ export const submitFallback = mutation({
     };
   },
 });
+
+// ============================================
+// V2 AI-POWERED INQUIRY FLOW (Claude Code-style)
+// ============================================
+
+// V2 Question type (Claude Code-style)
+type AIQuestionV2 = {
+  question: string;
+  header: string;
+  options: { label: string; description: string }[];
+  multiSelect: boolean;
+};
+
+// Helper to extract userType and timeline from AI question answers
+function extractScopeAndTimeline(
+  questions: AIQuestionV2[],
+  answers: string
+): { userType: string; timeline: string } {
+  // Parse V2 answers - format: "Header=Option label, Header2=Option A"
+  const answerMap = new Map<string, string>();
+  answers.split(/,\s*(?=[A-Z])/).forEach(part => {
+    const eqIndex = part.indexOf("=");
+    if (eqIndex > 0) {
+      const header = part.substring(0, eqIndex).trim();
+      const value = part.substring(eqIndex + 1).trim();
+      answerMap.set(header.toLowerCase(), value.toLowerCase());
+    }
+  });
+
+  // Combine all answer text for pattern matching
+  const allAnswerText = Array.from(answerMap.values()).join(" ");
+
+  // User type patterns
+  const userTypePatterns: Record<string, string[]> = {
+    "just-me": ["just me", "only me", "myself", "personal use", "personal project"],
+    "team": ["my team", "our team", "small team", "internal team", "coworkers", "colleagues"],
+    "customers": ["my customers", "our customers", "clients", "paying users", "subscribers"],
+    "everyone": ["everyone", "public", "anyone", "general public", "open to all"],
+  };
+
+  // Timeline patterns
+  const timelinePatterns: Record<string, string[]> = {
+    "exploring": ["exploring", "just exploring", "thinking about", "no rush", "someday", "eventually"],
+    "soon": ["2-3 months", "within 2-3 months", "next quarter", "few months", "soon"],
+    "asap": ["asap", "as soon as possible", "immediately", "urgent", "right away", "this month"],
+  };
+
+  // Find userType
+  let userType = "team"; // default
+  for (const [type, patterns] of Object.entries(userTypePatterns)) {
+    for (const pattern of patterns) {
+      if (allAnswerText.includes(pattern)) {
+        userType = type;
+        break;
+      }
+    }
+  }
+
+  // Find timeline
+  let timeline = "soon"; // default
+  for (const [time, patterns] of Object.entries(timelinePatterns)) {
+    for (const pattern of patterns) {
+      if (allAnswerText.includes(pattern)) {
+        timeline = time;
+        break;
+      }
+    }
+  }
+
+  // Check if questions explicitly ask about users/timeline
+  for (const q of questions) {
+    const header = q.header.toLowerCase();
+    const question = q.question.toLowerCase();
+    const answer = answerMap.get(header) || "";
+
+    // User type question
+    if (
+      header.includes("user") ||
+      header.includes("who") ||
+      header.includes("audience") ||
+      question.includes("who will use") ||
+      question.includes("who is this for")
+    ) {
+      for (const [type, patterns] of Object.entries(userTypePatterns)) {
+        for (const pattern of patterns) {
+          if (answer.includes(pattern)) {
+            userType = type;
+          }
+        }
+      }
+    }
+
+    // Timeline question
+    if (
+      header.includes("time") ||
+      header.includes("when") ||
+      header.includes("urgency") ||
+      question.includes("when do you need") ||
+      question.includes("timeline")
+    ) {
+      for (const [time, patterns] of Object.entries(timelinePatterns)) {
+        for (const pattern of patterns) {
+          if (answer.includes(pattern)) {
+            timeline = time;
+          }
+        }
+      }
+    }
+  }
+
+  return { userType, timeline };
+}
+
+// Action to generate V2 AI questions for a project description
+export const getAIQuestionsV2 = action({
+  args: {
+    description: v.string(),
+  },
+  handler: async (ctx, args): Promise<
+    | { success: true; questions: AIQuestionV2[]; usage: unknown }
+    | { success: false; error: string; questions: null }
+  > => {
+    try {
+      const result = await ctx.runAction(api.ai.generateQuestionsV2, {
+        description: args.description,
+      });
+
+      return {
+        success: true,
+        questions: result.questions as AIQuestionV2[],
+        usage: result.usage,
+      };
+    } catch (error) {
+      console.error("Failed to generate AI questions V2:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        questions: null,
+      };
+    }
+  },
+});
+
+// V2 result types for orchestration
+type GeneratePRDAndEstimateV2Result =
+  | {
+      success: true;
+      stage: "review";
+      initialPRD: PRDType;
+      reviewerQuestions: AIQuestionV2[];
+      gaps: string[];
+      recommendations: string[];
+      extractedUserType: string;
+      extractedTimeline: string;
+      prd: null;
+      estimate: null;
+      usage: { review: unknown };
+    }
+  | {
+      success: true;
+      stage: "complete";
+      prd: PRDType;
+      estimate: EstimateType;
+      initialPRD: PRDType;
+      enhancedPRD: PRDType | null;
+      extractedUserType: string;
+      extractedTimeline: string;
+      reviewerQuestions: null;
+      gaps: null;
+      recommendations: null;
+      usage: { estimate: unknown };
+    }
+  | {
+      success: false;
+      stage: "error";
+      error: string;
+      prd: null;
+      estimate: null;
+      initialPRD: null;
+      enhancedPRD: null;
+      extractedUserType: string;
+      extractedTimeline: string;
+      reviewerQuestions: null;
+      gaps: null;
+      recommendations: null;
+      usage: null;
+    };
+
+// V2 orchestration: Two-stage PRD generation with review
+export const generatePRDAndEstimateV2 = action({
+  args: {
+    description: v.string(),
+    answers: v.string(),
+    questions: v.array(
+      v.object({
+        question: v.string(),
+        header: v.string(),
+        options: v.array(
+          v.object({
+            label: v.string(),
+            description: v.string(),
+          })
+        ),
+        multiSelect: v.boolean(),
+      })
+    ),
+    // Optional: for resuming from review stage
+    initialPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+    reviewerAnswers: v.optional(v.string()), // "Header=Option" or "SKIPPED"
+    reviewerQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    gaps: v.optional(v.array(v.string())),
+    recommendations: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args): Promise<GeneratePRDAndEstimateV2Result> => {
+    // Extract userType and timeline from AI answers
+    const { userType, timeline } = extractScopeAndTimeline(
+      args.questions,
+      args.answers
+    );
+
+    try {
+      // Stage 1: Generate initial PRD if not provided
+      let prd = args.initialPRD;
+      if (!prd) {
+        const prdResult = await ctx.runAction(api.ai.generatePRDV2, {
+          description: args.description,
+          answers: args.answers,
+          questions: args.questions,
+        });
+        prd = prdResult.prd as PRDType;
+      }
+
+      // Stage 2: If no reviewer answers yet, get review questions
+      if (args.reviewerAnswers === undefined) {
+        const reviewResult = await ctx.runAction(api.ai.reviewPRD, {
+          prd,
+          originalDescription: args.description,
+          previousAnswers: args.answers,
+        });
+
+        // Return early with review stage data
+        return {
+          success: true,
+          stage: "review" as const,
+          initialPRD: prd,
+          reviewerQuestions: reviewResult.questions,
+          gaps: reviewResult.gaps,
+          recommendations: reviewResult.recommendations,
+          extractedUserType: userType,
+          extractedTimeline: timeline,
+          prd: null,
+          estimate: null,
+          usage: { review: reviewResult.usage },
+        };
+      }
+
+      // Stage 3: Enhance PRD with review answers
+      let finalPRD = prd;
+      if (
+        args.reviewerAnswers !== "SKIPPED" &&
+        args.reviewerQuestions &&
+        args.gaps &&
+        args.recommendations
+      ) {
+        const enhanceResult = await ctx.runAction(api.ai.enhancePRD, {
+          originalPRD: prd,
+          gaps: args.gaps,
+          reviewerQuestions: args.reviewerQuestions,
+          userAnswers: args.reviewerAnswers,
+          recommendations: args.recommendations,
+        });
+        if (enhanceResult.enhanced) {
+          finalPRD = enhanceResult.prd as PRDType;
+        }
+      }
+
+      // Stage 4: Generate estimate from final PRD
+      const estimateResult = await ctx.runAction(api.ai.estimateFromPRD, {
+        prd: finalPRD,
+        userType,
+        timeline,
+      });
+
+      return {
+        success: true,
+        stage: "complete" as const,
+        prd: finalPRD,
+        estimate: estimateResult.estimate as EstimateType,
+        initialPRD: args.initialPRD ?? prd,
+        enhancedPRD: args.reviewerAnswers !== "SKIPPED" ? finalPRD : null,
+        extractedUserType: userType,
+        extractedTimeline: timeline,
+        reviewerQuestions: null,
+        gaps: null,
+        recommendations: null,
+        usage: { estimate: estimateResult.usage },
+      };
+    } catch (error) {
+      console.error("Failed to generate PRD and estimate V2:", error);
+      return {
+        success: false,
+        stage: "error" as const,
+        error: error instanceof Error ? error.message : "Unknown error",
+        prd: null,
+        estimate: null,
+        initialPRD: null,
+        enhancedPRD: null,
+        extractedUserType: userType,
+        extractedTimeline: timeline,
+        reviewerQuestions: null,
+        gaps: null,
+        recommendations: null,
+        usage: null,
+      };
+    }
+  },
+});
+
+// V2 mutation to create inquiry with full AI data (two-stage)
+export const createWithAIV2 = mutation({
+  args: {
+    description: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    // V2 questions
+    generatedQuestions: v.array(
+      v.object({
+        question: v.string(),
+        header: v.string(),
+        options: v.array(
+          v.object({
+            label: v.string(),
+            description: v.string(),
+          })
+        ),
+        multiSelect: v.boolean(),
+      })
+    ),
+    answers: v.string(),
+    // Two-stage PRD
+    initialPRD: v.object({
+      summary: v.string(),
+      userStories: v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          description: v.string(),
+          acceptanceCriteria: v.array(v.string()),
+        })
+      ),
+      functionalRequirements: v.array(
+        v.object({
+          id: v.string(),
+          description: v.string(),
+        })
+      ),
+      nonGoals: v.array(v.string()),
+    }),
+    reviewerQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    reviewerAnswers: v.optional(v.string()),
+    reviewerGaps: v.optional(v.array(v.string())),
+    reviewerRecommendations: v.optional(v.array(v.string())),
+    enhancedPRD: v.optional(
+      v.object({
+        summary: v.string(),
+        userStories: v.array(
+          v.object({
+            id: v.string(),
+            title: v.string(),
+            description: v.string(),
+            acceptanceCriteria: v.array(v.string()),
+          })
+        ),
+        functionalRequirements: v.array(
+          v.object({
+            id: v.string(),
+            description: v.string(),
+          })
+        ),
+        nonGoals: v.array(v.string()),
+      })
+    ),
+    // Estimate
+    estimate: v.object({
+      lineItems: v.array(
+        v.object({
+          id: v.string(),
+          title: v.string(),
+          hours: v.number(),
+          cost: v.number(),
+          confidence: v.string(),
+        })
+      ),
+      subtotal: v.number(),
+      riskBuffer: v.number(),
+      riskPercent: v.number(),
+      total: v.object({
+        min: v.number(),
+        max: v.number(),
+      }),
+      totalHours: v.number(),
+      confidence: v.string(),
+      notes: v.array(v.string()),
+    }),
+    // Extracted from answers
+    extractedUserType: v.string(),
+    extractedTimeline: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Calculate rough estimate for fallback/comparison
+    const { min, max, keywords } = calculateRoughRange(
+      args.description,
+      args.extractedUserType,
+      args.extractedTimeline
+    );
+
+    // Use enhanced PRD if available, otherwise initial
+    const finalPRD = args.enhancedPRD ?? args.initialPRD;
+
+    const inquiryId = await ctx.db.insert("projectInquiries", {
+      description: args.description,
+      userType: args.extractedUserType as "just-me" | "team" | "customers" | "everyone",
+      timeline: args.extractedTimeline as "exploring" | "soon" | "asap",
+      email: args.email,
+      name: args.name,
+      // V2 questions
+      generatedQuestionsV2: args.generatedQuestions,
+      answers: args.answers,
+      // Two-stage PRD
+      initialPRD: args.initialPRD,
+      reviewerQuestions: args.reviewerQuestions,
+      reviewerAnswers: args.reviewerAnswers,
+      reviewerGaps: args.reviewerGaps,
+      reviewerRecommendations: args.reviewerRecommendations,
+      enhancedPRD: args.enhancedPRD,
+      prd: finalPRD,
+      stage: args.enhancedPRD ? "enhanced" : "initial-prd",
+      // Estimate
+      lineItems: args.estimate.lineItems,
+      estimateMin: args.estimate.total.min,
+      estimateMax: args.estimate.total.max,
+      estimateSubtotal: args.estimate.subtotal,
+      estimateRiskBuffer: args.estimate.riskBuffer,
+      estimateRiskPercent: args.estimate.riskPercent,
+      estimateTotalHours: args.estimate.totalHours,
+      estimateConfidence: args.estimate.confidence,
+      estimateNotes: args.estimate.notes,
+      // Fallback
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: true,
+      status: "new",
+      createdAt: Date.now(),
+    });
+
+    return {
+      inquiryId,
+      estimateMin: args.estimate.total.min,
+      estimateMax: args.estimate.total.max,
+      lineItems: args.estimate.lineItems,
+      prd: finalPRD,
+      confidence: args.estimate.confidence,
+      notes: args.estimate.notes,
+    };
+  },
+});
+
+// V2 fallback submit (when AI fails)
+export const submitFallbackV2 = mutation({
+  args: {
+    description: v.string(),
+    email: v.string(),
+    name: v.optional(v.string()),
+    // V2 questions (if we got that far)
+    generatedQuestions: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          header: v.string(),
+          options: v.array(
+            v.object({
+              label: v.string(),
+              description: v.string(),
+            })
+          ),
+          multiSelect: v.boolean(),
+        })
+      )
+    ),
+    answers: v.optional(v.string()),
+    aiError: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Extract userType/timeline from answers if available
+    let userType = "team";
+    let timeline = "soon";
+
+    if (args.generatedQuestions && args.answers) {
+      const extracted = extractScopeAndTimeline(
+        args.generatedQuestions,
+        args.answers
+      );
+      userType = extracted.userType;
+      timeline = extracted.timeline;
+    }
+
+    // Calculate rough pricing
+    const { min, max, keywords } = calculateRoughRange(
+      args.description,
+      userType,
+      timeline
+    );
+
+    const inquiryId = await ctx.db.insert("projectInquiries", {
+      description: args.description,
+      userType: userType as "just-me" | "team" | "customers" | "everyone",
+      timeline: timeline as "exploring" | "soon" | "asap",
+      email: args.email,
+      name: args.name,
+      generatedQuestionsV2: args.generatedQuestions,
+      answers: args.answers,
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: false,
+      aiError: args.aiError,
+      stage: "questions",
+      status: "new",
+      createdAt: Date.now(),
+    });
+
+    return {
+      inquiryId,
+      roughMin: min,
+      roughMax: max,
+      keywords,
+      usedAI: false,
+    };
+  },
+});
