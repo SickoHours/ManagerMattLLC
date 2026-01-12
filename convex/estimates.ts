@@ -143,6 +143,14 @@ export const create = mutation({
   },
 });
 
+// List all estimates
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("estimates").order("desc").collect();
+  },
+});
+
 // Get estimate by ID
 export const get = query({
   args: { estimateId: v.id("estimates") },
