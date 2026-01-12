@@ -174,4 +174,43 @@ export default defineSchema({
     markup: v.number(),
     isActive: v.boolean(),
   }).index("by_active", ["isActive"]),
+
+  // projectInquiries - consumer-friendly project submissions
+  projectInquiries: defineTable({
+    // User input (simple, non-technical)
+    description: v.string(), // Free-text project description
+    userType: v.union(
+      v.literal("just-me"),
+      v.literal("team"),
+      v.literal("customers"),
+      v.literal("everyone")
+    ),
+    timeline: v.union(
+      v.literal("exploring"),
+      v.literal("soon"),
+      v.literal("asap")
+    ),
+    email: v.string(),
+    name: v.optional(v.string()),
+
+    // Generated rough estimate
+    roughMin: v.number(),
+    roughMax: v.number(),
+    keywords: v.array(v.string()), // Detected keywords for admin review
+
+    // Admin workflow
+    status: v.union(
+      v.literal("new"),
+      v.literal("reviewed"),
+      v.literal("quoted"),
+      v.literal("converted")
+    ),
+    reviewNotes: v.optional(v.string()),
+    actualQuote: v.optional(v.number()),
+    linkedEstimateId: v.optional(v.id("estimates")), // Link to detailed estimate if created
+
+    // Metadata
+    createdAt: v.number(),
+    reviewedAt: v.optional(v.number()),
+  }).index("by_status", ["status"]).index("by_email", ["email"]),
 });

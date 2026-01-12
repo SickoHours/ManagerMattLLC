@@ -10,6 +10,7 @@
 
 import type * as contact from "../contact.js";
 import type * as estimates from "../estimates.js";
+import type * as inquiries from "../inquiries.js";
 import type * as lib_estimator from "../lib/estimator.js";
 import type * as quotes from "../quotes.js";
 import type * as seed from "../seed.js";
@@ -23,6 +24,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   contact: typeof contact;
   estimates: typeof estimates;
+  inquiries: typeof inquiries;
   "lib/estimator": typeof lib_estimator;
   quotes: typeof quotes;
   seed: typeof seed;
