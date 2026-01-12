@@ -8,14 +8,12 @@ interface CountingNumberProps {
   prefix?: string;
   suffix?: string;
   decimals?: number;
-  once?: boolean;
   className?: string;
-  from?: number;
 }
 
 /**
  * Counting Number Animation - Simple, reliable implementation
- * Uses Intersection Observer for better SSR compatibility
+ * Shows target value immediately, animates as enhancement when scrolled into view
  */
 export function CountingNumber({
   target,
@@ -24,73 +22,67 @@ export function CountingNumber({
   suffix = "",
   decimals = 0,
   className = "",
-  from = 0,
 }: CountingNumberProps) {
   const containerRef = useRef<HTMLSpanElement>(null);
-  const [displayValue, setDisplayValue] = useState(from);
-  const [hasStarted, setHasStarted] = useState(false);
+  // Start with target value so numbers always display correctly
+  const [displayValue, setDisplayValue] = useState(target);
+  const hasAnimatedRef = useRef(false);
   const animationRef = useRef<number | null>(null);
 
-  // Start the counting animation function
-  const startAnimation = () => {
-    if (hasStarted) return;
-    setHasStarted(true);
-
-    const startTime = performance.now();
-    const durationMs = duration * 1000;
-
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / durationMs, 1);
-
-      // Ease out cubic
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentValue = from + (target - from) * easeProgress;
-
-      setDisplayValue(currentValue);
-
-      if (progress < 1) {
-        animationRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-  };
+  useEffect(() => {
+    // Update display value if target changes
+    setDisplayValue(target);
+  }, [target]);
 
   useEffect(() => {
-    if (!containerRef.current || hasStarted) return;
+    if (!containerRef.current || hasAnimatedRef.current) return;
 
-    // Fallback: if observer doesn't fire within 1.5s, start animation anyway
-    // This handles SSR hydration issues and edge cases
-    const fallbackTimer = setTimeout(() => {
-      if (!hasStarted) {
-        startAnimation();
-      }
-    }, 1500);
+    const runAnimation = () => {
+      if (hasAnimatedRef.current) return;
+      hasAnimatedRef.current = true;
+
+      // Reset to 0 and animate to target
+      const startTime = performance.now();
+      const durationMs = duration * 1000;
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+
+        // Ease out cubic
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
+        const currentValue = target * easeProgress;
+
+        setDisplayValue(currentValue);
+
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        }
+      };
+
+      // Start from 0
+      setDisplayValue(0);
+      animationRef.current = requestAnimationFrame(animate);
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasStarted) {
-            clearTimeout(fallbackTimer);
-            startAnimation();
-          }
-        });
+        if (entries[0]?.isIntersecting && !hasAnimatedRef.current) {
+          runAnimation();
+        }
       },
-      { threshold: 0.1 } // Simplified threshold for better reliability
+      { threshold: 0.1 }
     );
 
     observer.observe(containerRef.current);
 
     return () => {
-      clearTimeout(fallbackTimer);
       observer.disconnect();
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, duration, from, hasStarted]);
+  }, [target, duration]);
 
   const formattedValue = displayValue.toFixed(decimals);
 

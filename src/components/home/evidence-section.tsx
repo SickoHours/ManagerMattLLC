@@ -41,7 +41,6 @@ function EvidenceCard({
           decimals={statDecimals}
           suffix={statSuffix}
           duration={2.5}
-          once={true}
         />
       </div>
 
