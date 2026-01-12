@@ -16,7 +16,7 @@ export default function SignInPage() {
             footerActionLink: "text-blue-400 hover:text-blue-300",
           },
         }}
-        afterSignInUrl="/admin"
+        fallbackRedirectUrl="/admin"
         signUpUrl="/sign-up"
       />
     </div>
