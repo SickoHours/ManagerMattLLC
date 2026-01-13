@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Oswald } from "next/font/google";
 import "./globals.css";
 import { PublicConvexProvider } from "@/components/providers/convex-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -38,7 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plusJakarta.variable} ${oswald.variable}`}>
       <body className="min-h-screen font-sans antialiased" style={{ fontFamily: "var(--font-plus-jakarta), sans-serif" }}>
-        <PublicConvexProvider>{children}</PublicConvexProvider>
+        <ErrorBoundary>
+          <PublicConvexProvider>{children}</PublicConvexProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
