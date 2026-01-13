@@ -9,6 +9,7 @@ const ADMIN_EMAILS = [
 ];
 
 export default clerkMiddleware(async (auth, req) => {
+  // Only enforce Clerk auth on admin and sign-in routes
   if (isAdminRoute(req)) {
     // Protect the route (requires sign-in)
     await auth.protect();
@@ -24,10 +25,11 @@ export default clerkMiddleware(async (auth, req) => {
 });
 
 export const config = {
+  // Only run middleware on admin routes and sign-in routes
+  // Public routes don't need Clerk middleware at all
   matcher: [
-    // Skip Next.js internals and all static files
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
+    "/admin(.*)",
+    "/sign-in(.*)",
+    "/api/admin(.*)",
   ],
 };
