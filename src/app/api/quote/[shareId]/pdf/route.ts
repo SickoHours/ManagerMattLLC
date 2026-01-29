@@ -7,7 +7,14 @@ import { QuotePDFDocument } from "@/components/pdf/quote-pdf";
 // Force Node.js runtime for @react-pdf/renderer compatibility
 export const runtime = "nodejs";
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+// Lazy initialization to avoid build-time errors when env var is missing
+function getConvexClient() {
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) {
+    throw new Error("NEXT_PUBLIC_CONVEX_URL is not configured");
+  }
+  return new ConvexHttpClient(url);
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +24,7 @@ export async function GET(
 
   try {
     // Fetch quote from Convex
+    const convex = getConvexClient();
     const quote = await convex.query(api.quotes.getByShareId, { shareId });
 
     if (!quote) {
