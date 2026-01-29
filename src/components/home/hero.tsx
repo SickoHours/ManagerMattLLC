@@ -123,20 +123,20 @@ export function Hero() {
           {/* CTA */}
           <div className="aura-reveal aura-reveal-delay-5 mt-12 flex flex-col sm:flex-row gap-4">
             <Link
-              href="/estimate"
+              href="/work"
               className="group inline-flex items-center justify-center gap-2 bg-white text-black rounded-full px-8 py-3 font-medium hover:bg-zinc-100 transition-colors"
             >
-              Get Your Estimate
+              See My Work
               <ArrowRight
                 size={18}
                 className="transition-transform group-hover:translate-x-1"
               />
             </Link>
             <Link
-              href="/work"
+              href="/contact"
               className="btn-vibe-secondary text-center"
             >
-              See My Work
+              Get In Touch
             </Link>
           </div>
         </div>
