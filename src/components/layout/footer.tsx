@@ -10,16 +10,11 @@ const footerLinks = {
   product: [
     { href: "/", label: "Home" },
     { href: "/work", label: "Work" },
-    { href: "/estimate", label: "Estimate" },
-  ],
-  resources: [
-    { href: "/process", label: "Process" },
-    { href: "/pricing", label: "Pricing" },
     { href: "/contact", label: "Contact" },
   ],
-  legal: [
-    { href: "/legal/privacy", label: "Privacy" },
-    { href: "/legal/terms", label: "Terms" },
+  resources: [
+    { href: "https://github.com/SickoHours", label: "GitHub" },
+    { href: "https://twitter.com/ManagerMattLLC", label: "Twitter" },
   ],
 };
 
@@ -155,8 +150,6 @@ export function Footer() {
             <p className="text-sm text-zinc-600 leading-relaxed">
               This website was vibe-coded.
               <br />
-              So was the estimation tool you just used.
-              <br />
               So is everything I build.
             </p>
             <p className="mt-4 text-sm text-zinc-500 italic">
@@ -171,17 +164,6 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Manager Matt LLC. All rights
             reserved.
           </p>
-          <div className="flex gap-6">
-            {footerLinks.legal.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-zinc-600 hover:text-zinc-400 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
         </div>
       </div>
     </footer>

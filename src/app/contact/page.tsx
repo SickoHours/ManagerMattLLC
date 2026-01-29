@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import Link from "next/link";
 
 export default function ContactPage() {
   const [formState, setFormState] = useState({
@@ -14,37 +11,6 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const sendContactEmail = useAction(api.contact.sendContactEmail);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const result = await sendContactEmail({
-        name: formState.name,
-        email: formState.email,
-        subject: formState.subject,
-        message: formState.message,
-      });
-
-      if (result.success) {
-        setIsSubmitted(true);
-      } else {
-        setError(result.error || "Failed to send message. Please try again.");
-      }
-    } catch (err) {
-      console.error("Contact form error:", err);
-      setError("Failed to send message. Please try again or email us directly.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const contactMethods = [
     {
@@ -59,8 +25,8 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Email",
-      value: "hello@managermatt.com",
-      href: "mailto:hello@managermatt.com",
+      value: "hello@managermatt.io",
+      href: "mailto:hello@managermatt.io",
       description: "Best for detailed project inquiries",
     },
     {
@@ -91,11 +57,21 @@ export default function ContactPage() {
         </svg>
       ),
       title: "Twitter/X",
-      value: "@managermattllc",
+      value: "@ManagerMattLLC",
       href: "https://twitter.com/managermattllc",
       description: "Quick questions and updates",
     },
   ];
+
+  // Build mailto link with form data
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const subject = encodeURIComponent(formState.subject || "New Project Inquiry");
+    const body = encodeURIComponent(
+      `Name: ${formState.name}\nEmail: ${formState.email}\n\n${formState.message}`
+    );
+    window.location.href = `mailto:hello@managermatt.io?subject=${subject}&body=${body}`;
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -107,8 +83,8 @@ export default function ContactPage() {
           <div className="container-wide mx-auto px-6 text-center">
             <h1 className="text-h1 text-foreground mb-4">Get in Touch</h1>
             <p className="text-body-lg text-secondary-custom max-w-2xl mx-auto">
-              Have a project in mind? We&apos;d love to hear about it. Reach out and
-              we&apos;ll get back to you within one business day.
+              Have a project in mind? Let&apos;s talk about it.
+              I respond to every message within 24 hours.
             </p>
           </div>
         </section>
@@ -148,166 +124,110 @@ export default function ContactPage() {
           <div className="container-wide mx-auto px-6">
             <div className="max-w-2xl mx-auto">
               <div className="text-center mb-10">
-                <h2 className="text-h2 text-foreground mb-4">Send Us a Message</h2>
+                <h2 className="text-h2 text-foreground mb-4">Send a Message</h2>
                 <p className="text-body text-secondary-custom">
-                  Fill out the form below and we&apos;ll get back to you as soon as possible.
+                  Fill out the form and it&apos;ll open your email client ready to send.
                 </p>
               </div>
 
-              {isSubmitted ? (
-                <div className="bg-surface rounded-2xl p-8 text-center border border-border-default">
-                  <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-4">
-                    <svg
-                      className="w-8 h-8 text-success"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-h3 text-foreground mb-2">Message Sent!</h3>
-                  <p className="text-body text-secondary-custom mb-6">
-                    Thanks for reaching out. We&apos;ll get back to you within one business day.
-                    Check your email for a confirmation.
-                  </p>
-                  <Link
-                    href="/estimate"
-                    className="inline-flex items-center justify-center h-11 px-6 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-colors"
-                  >
-                    Get an Estimate
-                  </Link>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label
-                        htmlFor="name"
-                        className="block text-body-sm font-medium text-foreground mb-2"
-                      >
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        required
-                        value={formState.name}
-                        onChange={(e) =>
-                          setFormState({ ...formState, name: e.target.value })
-                        }
-                        className="w-full h-11 px-4 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block text-body-sm font-medium text-foreground mb-2"
-                      >
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        required
-                        value={formState.email}
-                        onChange={(e) =>
-                          setFormState({ ...formState, email: e.target.value })
-                        }
-                        className="w-full h-11 px-4 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-                        placeholder="you@example.com"
-                      />
-                    </div>
-                  </div>
-
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label
-                      htmlFor="subject"
+                      htmlFor="name"
                       className="block text-body-sm font-medium text-foreground mb-2"
                     >
-                      Subject
+                      Name
                     </label>
                     <input
                       type="text"
-                      id="subject"
+                      id="name"
                       required
-                      value={formState.subject}
+                      value={formState.name}
                       onChange={(e) =>
-                        setFormState({ ...formState, subject: e.target.value })
+                        setFormState({ ...formState, name: e.target.value })
                       }
                       className="w-full h-11 px-4 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
-                      placeholder="What's this about?"
+                      placeholder="Your name"
                     />
                   </div>
-
                   <div>
                     <label
-                      htmlFor="message"
+                      htmlFor="email"
                       className="block text-body-sm font-medium text-foreground mb-2"
                     >
-                      Message
+                      Email
                     </label>
-                    <textarea
-                      id="message"
+                    <input
+                      type="email"
+                      id="email"
                       required
-                      rows={6}
-                      value={formState.message}
+                      value={formState.email}
                       onChange={(e) =>
-                        setFormState({ ...formState, message: e.target.value })
+                        setFormState({ ...formState, email: e.target.value })
                       }
-                      className="w-full px-4 py-3 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none"
-                      placeholder="Tell us about your project..."
+                      className="w-full h-11 px-4 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                      placeholder="you@example.com"
                     />
                   </div>
+                </div>
 
-                  {error && (
-                    <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                      <p className="text-body-sm text-destructive">{error}</p>
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-12 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                <div>
+                  <label
+                    htmlFor="subject"
+                    className="block text-body-sm font-medium text-foreground mb-2"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <svg
-                          className="w-5 h-5 mr-2 animate-spin"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
-                        Sending...
-                      </>
-                    ) : (
-                      "Send Message"
-                    )}
-                  </button>
-                </form>
-              )}
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    id="subject"
+                    value={formState.subject}
+                    onChange={(e) =>
+                      setFormState({ ...formState, subject: e.target.value })
+                    }
+                    className="w-full h-11 px-4 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors"
+                    placeholder="What's this about?"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="message"
+                    className="block text-body-sm font-medium text-foreground mb-2"
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    required
+                    rows={6}
+                    value={formState.message}
+                    onChange={(e) =>
+                      setFormState({ ...formState, message: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-lg border border-border-default bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors resize-none"
+                    placeholder="Tell me about your project..."
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full h-12 bg-accent text-white rounded-lg font-medium hover:bg-accent-hover transition-colors flex items-center justify-center gap-2"
+                >
+                  Open in Email Client
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </button>
+
+                <p className="text-center text-body-sm text-secondary-custom">
+                  Or email directly at{" "}
+                  <a href="mailto:hello@managermatt.io" className="text-accent hover:underline">
+                    hello@managermatt.io
+                  </a>
+                </p>
+              </form>
             </div>
           </div>
         </section>

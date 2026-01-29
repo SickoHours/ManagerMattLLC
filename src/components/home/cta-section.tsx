@@ -159,12 +159,12 @@ export function CTASection() {
             }`}
           >
             <Link
-              href="/estimate"
+              href="/contact"
               className="group relative inline-flex items-center gap-2 bg-white text-black rounded-full text-lg px-10 py-4 font-semibold overflow-hidden hover:bg-zinc-100 transition-all duration-300 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)]"
             >
               {/* Animated border */}
               <span className="absolute inset-0 rounded-full border-2 border-purple-400/50 animate-pulse" />
-              <span className="relative z-10">Get Your Estimate</span>
+              <span className="relative z-10">Let&apos;s Talk</span>
               <ArrowRight
                 size={20}
                 className="relative z-10 transition-transform group-hover:translate-x-1"

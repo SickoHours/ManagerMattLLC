@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/work", label: "Work" },
-  { href: "/process", label: "Process" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {
@@ -54,10 +54,10 @@ export function Header() {
 
             {/* CTA Button */}
             <Link
-              href="/estimate"
+              href="/contact"
               className="ml-auto md:ml-4 bg-white text-black px-4 py-1.5 md:px-5 md:py-2 rounded-full text-sm font-medium hover:bg-zinc-100 transition-colors"
             >
-              Get Estimate
+              Let&apos;s Talk
             </Link>
 
             {/* Mobile Menu Button */}
@@ -109,15 +109,6 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 pt-2 border-t border-white/10">
-              <Link
-                href="/sign-in"
-                className="block px-4 py-3 text-base text-zinc-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-            </div>
           </nav>
         </div>
       )}
