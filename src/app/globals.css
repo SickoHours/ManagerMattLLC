@@ -4,6 +4,28 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================
+   Mobile Safari Viewport Fix
+   Use dvh (dynamic viewport height) when available
+   ============================================ */
+@supports (height: 100dvh) {
+  :root {
+    --vh-unit: 1dvh;
+  }
+}
+@supports not (height: 100dvh) {
+  :root {
+    --vh-unit: 1vh;
+  }
+}
+
+/* Prevent iOS Safari from zooming on input focus */
+@media (max-width: 768px) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================
    ManagerMattLLC Vibe Coder Design System
    Dark, Premium, Editorial Aesthetic
    ============================================ */
@@ -1067,6 +1089,16 @@
   .dramatic-entrance[data-delay="3"] { transition-delay: 0.3s; }
   .dramatic-entrance[data-delay="4"] { transition-delay: 0.4s; }
   .dramatic-entrance[data-delay="5"] { transition-delay: 0.5s; }
+
+  /* Mobile performance: disable blur filter which causes jank */
+  @media (max-width: 768px), (prefers-reduced-motion: reduce) {
+    .dramatic-entrance {
+      filter: none;
+    }
+    .dramatic-entrance.entered {
+      filter: none;
+    }
+  }
 
   /* ============================================
      Horizontal Scroll Section

@@ -135,11 +135,12 @@ export function ProcessSectionHorizontal() {
   }
 
   // Desktop layout (horizontal scroll)
+  // Use dvh (dynamic viewport height) with vh fallback for mobile Safari compatibility
   return (
     <section
       ref={sectionRef}
       className="bg-vibe-dark relative overflow-hidden"
-      style={{ height: "100vh" }}
+      style={{ height: "100dvh", minHeight: "100vh" }}
     >
       {/* Ambient glow */}
       <div className="glow-purple-sm absolute top-1/4 right-0 opacity-30" />
